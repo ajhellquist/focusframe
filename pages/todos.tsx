@@ -40,14 +40,21 @@ function TodosPage() {
   };
 
   const addTodo = async () => {
-    if (!newTodo.trim()) return;
-    const { error } = await supabase
+    const text = newTodo.trim();
+    if (!text) return;
+    // Insert and return the new record
+    const insertResp = await supabase
       .from('todos')
-      .insert([{ content: newTodo, user_id: user.id }]);
-    if (error) console.error(error);
-    else {
+      .insert([{ content: text, user_id: user.id }])
+      .select();
+    const data = insertResp.data as Todo[] | null;
+    const error = insertResp.error;
+    if (error) {
+      console.error('Error adding todo:', error);
+    } else if (data && data.length > 0) {
+      // Prepend the new todo to the list
+      setTodos((prev) => [data[0], ...prev]);
       setNewTodo('');
-      fetchTodos(user.id);
     }
   };
 
@@ -88,9 +95,16 @@ function TodosPage() {
           placeholder="Add new task"
           value={newTodo}
           onChange={(e) => setNewTodo(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              addTodo();
+            }
+          }}
           className="flex-1 border rounded p-2 mr-2"
         />
         <button
+          type="button"
           onClick={addTodo}
           className="bg-blue-600 text-white rounded px-4"
         >

@@ -18,14 +18,14 @@ export default function Layout({ children }: LayoutProps) {
       <header className="bg-white shadow">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <nav className="space-x-4">
-            <Link href="/dashboard">
-              <a className="text-gray-700 hover:text-blue-500">Dashboard</a>
+            <Link href="/dashboard" className="text-gray-700 hover:text-blue-500">
+              Dashboard
             </Link>
-            <Link href="/todos">
-              <a className="text-gray-700 hover:text-blue-500">To‑Dos</a>
+            <Link href="/todos" className="text-gray-700 hover:text-blue-500">
+              To‑Dos
             </Link>
-            <Link href="/habits">
-              <a className="text-gray-700 hover:text-blue-500">Habits</a>
+            <Link href="/habits" className="text-gray-700 hover:text-blue-500">
+              Habits
             </Link>
           </nav>
           <button
