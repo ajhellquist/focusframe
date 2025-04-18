@@ -64,3 +64,57 @@ create policy "Users can update their todos" on public.todos
 create policy "Users can delete their todos" on public.todos
   for delete using (auth.uid() = user_id);
 ```
+Now, add the tables and policies to support habits tracking:
+
+```sql
+-- Create the habits table
+create table public.habits (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id),
+  title text not null,
+  created_at timestamptz not null default now()
+);
+
+-- Create the habit_completions table to track daily completions
+create table public.habit_completions (
+  id uuid primary key default gen_random_uuid(),
+  habit_id uuid not null references public.habits(id) on delete cascade,
+  completed_date date not null,
+  created_at timestamptz not null default now(),
+  unique(habit_id, completed_date)
+);
+
+-- Enable Row Level Security for habits and completions
+alter table public.habits enable row level security;
+alter table public.habit_completions enable row level security;
+
+-- Policies for habits
+create policy "Users can select their habits" on public.habits
+  for select using (auth.uid() = user_id);
+create policy "Users can insert their habits" on public.habits
+  for insert with check (auth.uid() = user_id);
+create policy "Users can update their habits" on public.habits
+  for update using (auth.uid() = user_id);
+create policy "Users can delete their habits" on public.habits
+  for delete using (auth.uid() = user_id);
+
+-- Policies for habit_completions
+create policy "Users can select their habit completions" on public.habit_completions
+  for select using (
+    exists (
+      select 1 from public.habits h where h.id = habit_id and h.user_id = auth.uid()
+    )
+  );
+create policy "Users can insert their habit completions" on public.habit_completions
+  for insert with check (
+    exists (
+      select 1 from public.habits h where h.id = habit_id and h.user_id = auth.uid()
+    )
+  );
+create policy "Users can delete their habit completions" on public.habit_completions
+  for delete using (
+    exists (
+      select 1 from public.habits h where h.id = habit_id and h.user_id = auth.uid()
+    )
+  );
+```
