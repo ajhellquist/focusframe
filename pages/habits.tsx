@@ -140,7 +140,7 @@ export default function HabitsPage() {
   return (
     <>
       <Head>
-        <title>Habits | To-Do & Habit Tracker</title>
+        <title>FocusFrame</title>
       </Head>
       <main className="min-h-screen p-8 bg-gray-50">
         <div className="flex items-center justify-between mb-6">

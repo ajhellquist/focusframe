@@ -176,7 +176,7 @@ function Dashboard() {
   return (
     <>
       <Head>
-        <title>Dashboard | To-Do & Habit Tracker</title>
+        <title>FocusFrame</title>
       </Head>
       <main className="min-h-screen p-8 bg-gray-50">
         <div className="mb-8">
