@@ -1,5 +1,7 @@
 import "../styles/globals.css";
 import React from "react";
+import Head from "next/head";
+import favicon from "../focusframelogosimple.png";
 import type { AppProps } from "next/app";
 import { AuthProvider, useAuth } from "../components/AuthProvider";
 import Layout from "../components/Layout";
@@ -23,8 +25,14 @@ function InnerApp({ Component, pageProps }: AppProps) {
 
 export default function MyApp(props: AppProps) {
   return (
-    <AuthProvider>
-      <InnerApp {...props} />
-    </AuthProvider>
+    <>
+      <Head>
+        <title>FocusFrame</title>
+        <link rel="icon" href={favicon.src} />
+      </Head>
+      <AuthProvider>
+        <InnerApp {...props} />
+      </AuthProvider>
+    </>
   );
 }

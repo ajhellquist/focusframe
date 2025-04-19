@@ -22,7 +22,7 @@ export default function Layout({ children }: LayoutProps) {
             <img
               src={logo.src}
               alt="FocusFrame Logo"
-              className="h-24 w-auto mr-4"
+              className="h-8 w-auto mr-4"
             />
             <nav className="space-x-4">
               <Link href="/dashboard" className="text-gray-700 hover:text-blue-500">
