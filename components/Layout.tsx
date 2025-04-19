@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseClient';
-import logo from '../focusframelogo.png';
+import logo from '../focusframe_logo_trimmed.png';
 
 type LayoutProps = {
   children: React.ReactNode;
