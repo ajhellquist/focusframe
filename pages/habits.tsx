@@ -2,6 +2,22 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Head from 'next/head';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../components/AuthProvider';
+/**
+ * Get a YYYY-MM-DD date string for a Date in the local timezone.
+ */
+const getLocalDateString = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+/**
+ * Parse a YYYY-MM-DD date string as a Date in the local timezone at midnight.
+ */
+const parseLocalDate = (dateString: string): Date => {
+  const [year, month, day] = dateString.split('-').map((x) => parseInt(x, 10));
+  return new Date(year, month - 1, day);
+};
 
 // Habit structure in UI
 type Habit = {
@@ -27,12 +43,58 @@ export default function HabitsPage() {
       return d < earliest ? d : earliest;
     }, today);
   }, [habits]);
-  const earliestDateStr = earliestDate.toISOString().split('T')[0];
+  const earliestDateStr = getLocalDateString(earliestDate);
 
   const handleDelete = (id: string) => {
     if (confirm('Are you sure you want to delete this habit?')) {
       setHabits((prev) => prev.filter((h) => h.id !== id));
     }
+  };
+  /**
+   * Edit the creation date of a habit (backdate or change).
+   */
+  const handleEdit = async (id: string) => {
+    const habit = habits.find((h) => h.id === id);
+    if (!habit) return;
+    const newDate = prompt(
+      `Enter new creation date for "${habit.title}" (YYYY-MM-DD):`,
+      habit.createdDate
+    );
+    if (!newDate) return;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate)) {
+      alert('Invalid date format. Please use YYYY-MM-DD.');
+      return;
+    }
+    const dateObj = parseLocalDate(newDate);
+    if (isNaN(dateObj.getTime())) {
+      alert('Invalid date. Please enter a valid date.');
+      return;
+    }
+    const todayStr = getLocalDateString(today);
+    if (newDate > todayStr) {
+      alert('Creation date cannot be in the future.');
+      return;
+    }
+    // Update in Supabase
+    const isoTimestamp = dateObj.toISOString();
+    const { data: updated, error } = await supabase
+      .from('habits')
+      .update({ created_at: isoTimestamp })
+      .eq('id', id)
+      .select('created_at')
+      .single();
+    if (error) {
+      console.error('Error updating creation date:', error.message);
+      return;
+    }
+    const updatedDate = getLocalDateString(new Date(updated.created_at));
+    setHabits((prev) =>
+      prev.map((h) =>
+        h.id === id
+          ? { ...h, createdDate: updatedDate }
+          : h
+      )
+    );
   };
 
   const formatDate = (date: Date) =>
@@ -51,7 +113,7 @@ export default function HabitsPage() {
     });
   };
 
-  const dateStr = currentDate.toISOString().split('T')[0];
+  const dateStr = getLocalDateString(currentDate);
 
   // Load habits and completions for current user
   useEffect(() => {
@@ -68,7 +130,8 @@ export default function HabitsPage() {
       const loaded = data.map((h: any) => ({
         id: h.id,
         title: h.title,
-        createdDate: h.created_at.split('T')[0],
+        // convert UTC timestamp to local YYYY-MM-DD
+        createdDate: getLocalDateString(new Date(h.created_at)),
         completedDates: (h.habit_completions || []).map((c: any) => c.completed_date),
       }));
       setHabits(loaded);
@@ -89,7 +152,8 @@ export default function HabitsPage() {
       console.error('Error adding habit:', error.message);
       return;
     }
-    const createdDate = data.created_at.split('T')[0];
+    // convert UTC timestamp to local YYYY-MM-DD
+    const createdDate = getLocalDateString(new Date(data.created_at));
     const newHabit: Habit = {
       id: data.id,
       title: data.title,
@@ -155,7 +219,7 @@ export default function HabitsPage() {
             <h1 className="text-xl font-semibold">{formatDate(currentDate)}</h1>
             <button
               onClick={goNext}
-              disabled={dateStr === today.toISOString().split('T')[0]}
+              disabled={dateStr === getLocalDateString(today)}
               className="p-2 bg-white rounded shadow disabled:opacity-50 hover:bg-gray-100 disabled:hover:bg-white"
             >
               &gt;
@@ -188,6 +252,13 @@ export default function HabitsPage() {
                       : `Mark ${habit.title} complete`}
                   >
                     {done ? '✔️' : '✖️'}
+                  </button>
+                  <button
+                    onClick={() => handleEdit(habit.id)}
+                    className="text-blue-500 hover:text-blue-700"
+                    aria-label={`Edit creation date for ${habit.title}`}
+                  >
+                    ✏️
                   </button>
                   <button
                     onClick={() => handleDelete(habit.id)}

@@ -2,6 +2,22 @@ import Head from "next/head";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
+/**
+ * Get a YYYY-MM-DD date string for a Date in the local timezone.
+ */
+const getLocalDateString = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+/**
+ * Parse a YYYY-MM-DD date string as a Date in local timezone at midnight.
+ */
+const parseLocalDate = (dateString: string): Date => {
+  const [year, month, day] = dateString.split('-').map((x) => parseInt(x, 10));
+  return new Date(year, month - 1, day);
+};
 
 // Types for dashboard data
 type Habit = {
@@ -56,7 +72,8 @@ function Dashboard() {
         const formatted = habitsData.map((h: any) => ({
           id: h.id,
           title: h.title,
-          createdDate: h.created_at.split('T')[0],
+          // convert UTC timestamp to local YYYY-MM-DD
+          createdDate: getLocalDateString(new Date(h.created_at)),
           completedDates: (h.habit_completions || []).map((c: any) => c.completed_date),
         }));
         setHabits(formatted);
@@ -83,17 +100,18 @@ function Dashboard() {
     return null;
   }
   // Prepare metrics
+  // Local dates for today and 7 days ago
   const today = new Date();
-  const dateStr = today.toISOString().split('T')[0];
-  // Baseline date string for 7 days ago
+  const dateStr = getLocalDateString(today);
   const baselineDate = new Date(today);
   baselineDate.setDate(today.getDate() - 7);
-  const baselineDateStr = baselineDate.toISOString().split('T')[0];
-  // helper: days difference between two YYYY-MM-DD strings
+  const baselineDateStr = getLocalDateString(baselineDate);
+  // helper: days difference between two YYYY-MM-DD strings (inclusive difference is +1 later)
   const daysBetween = (a: string, b: string) => {
-    const d1 = new Date(a);
-    const d2 = new Date(b);
-    return Math.floor((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
+    const d1 = parseLocalDate(a);
+    const d2 = parseLocalDate(b);
+    const msInDay = 1000 * 60 * 60 * 24;
+    return Math.floor((d2.getTime() - d1.getTime()) / msInDay);
   };
   // Metrics per habit: total days, completion rate, current streak
   const habitMetrics = habits.map((h) => {
@@ -105,7 +123,7 @@ function Dashboard() {
     for (let i = 0; i < totalDays; i++) {
       const d = new Date(today);
       d.setDate(today.getDate() - i);
-      const ds = d.toISOString().split('T')[0];
+      const ds = getLocalDateString(d);
       if (h.completedDates.includes(ds)) streak++;
       else break;
     }
@@ -121,34 +139,44 @@ function Dashboard() {
   });
   // Habit card component for rendering each habit with donut chart
   const HabitCard = ({ title, streak, completionRate, percentChange }: { title: string; streak: number; completionRate: number; percentChange: number; }) => {
-    const radius = 45;
+    // Increase radius to 72 for a larger donut
+    const radius = 72;
     const circumference = 2 * Math.PI * radius;
     const offset = circumference * (1 - completionRate / 100);
     return (
-      <section data-card-type="habit" className="bg-white p-4 rounded shadow h-[220px] w-[350px]">
+      <section data-card-type="habit" className="bg-white p-4 rounded-xl shadow border-8 border-black h-[290px] w-[350px]">
         <h2 className="text-lg font-semibold mb-2">{title}</h2>
         <p className="text-sm text-gray-600 mb-4">Current Streak: {streak} days</p>
         <div className="flex justify-center">
-          <svg width="100" height="100" viewBox="0 0 100 100">
+          <svg width="160" height="160" viewBox="0 0 160 160">
             <circle
-              cx="50"
-              cy="50"
+              cx="80"
+              cy="80"
               r={radius}
               fill="transparent"
               stroke="#e5e7eb"
               strokeWidth="10"
             />
             <circle
-              cx="50"
-              cy="50"
+              cx="80"
+              cy="80"
               r={radius}
               fill="transparent"
-              stroke="#10b981"
+              stroke="#549866"
               strokeWidth="10"
               strokeDasharray={circumference}
               strokeDashoffset={offset}
-              transform="rotate(-90 50 50)"
+              transform="rotate(-90 80 80)"
             />
+            <text
+              x="50%"
+              y="35%"
+              dominantBaseline="middle"
+              textAnchor="middle"
+              className="text-xs fill-current text-gray-500"
+            >
+              Completion Rate
+            </text>
             <text
               x="50%"
               y="45%"             /* moved upward to avoid overlap */
@@ -160,10 +188,20 @@ function Dashboard() {
             </text>
             <text
               x="50%"
+              y="55%"
+              dominantBaseline="middle"
+              textAnchor="middle"
+              className="text-xs fill-current text-gray-500"
+            >
+              Weekly Change
+            </text>
+            <text
+              x="50%"
               y="65%"             /* moved downward to avoid overlap */
               dominantBaseline="middle"
               textAnchor="middle"
-              className={`text-xs fill-current ${percentChange >= 0 ? 'text-green-500' : 'text-red-500'}`}
+              className="text-xs"
+              fill={percentChange >= 0 ? '#549866' : '#ef4444'}
             >
               {percentChange >= 0 ? `+${percentChange}%` : `${percentChange}%`}
             </text>
@@ -184,7 +222,7 @@ function Dashboard() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {/* Top 5 To-Dos card */}
-          <section data-card-type="todo" className="bg-white p-4 rounded shadow h-[220px] w-[350px]">
+          <section data-card-type="todo" className="bg-white p-4 rounded-xl shadow border-8 border-black h-[290px] w-[350px]">
             <h2 className="text-lg font-semibold mb-2">Top 5 To-Dos</h2>
             <ul className="space-y-2">
               {todos.length > 0 ? (
