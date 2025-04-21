@@ -257,7 +257,7 @@ function TodosPage() {
         <button
           type="button"
           onClick={addTodo}
-          className="bg-blue-600 text-white rounded px-4"
+          className="bg-[#569866] text-white rounded px-4"
         >
           Add
         </button>
@@ -267,7 +267,7 @@ function TodosPage() {
         <button
           onClick={() => setShowCompleted(false)}
           className={`px-4 py-2 rounded ${
-            !showCompleted ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
+            !showCompleted ? 'bg-[#569866] text-white' : 'bg-gray-200 text-gray-700'
           }`}
         >
           Current
@@ -275,7 +275,7 @@ function TodosPage() {
         <button
           onClick={() => setShowCompleted(true)}
           className={`px-4 py-2 rounded ${
-            showCompleted ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
+            showCompleted ? 'bg-[#569866] text-white' : 'bg-gray-200 text-gray-700'
           }`}
         >
           Completed
@@ -310,7 +310,7 @@ function TodosPage() {
               <div className="w-full flex items-center">
                 <button
                   onClick={() => toggleExpand(todo.id)}
-                  className="text-blue-500 mr-2"
+                  className="text-[#569866] mr-2"
                 >
                   {expandedIds.includes(todo.id) ? '▼' : '▶'}
                 </button>
@@ -320,9 +320,31 @@ function TodosPage() {
                     <>
                       <button
                         onClick={() => completeTodo(todo.id)}
-                        className="text-green-500"
+                        className="p-1"
                       >
-                        ✓
+                        <svg
+                          className="w-6 h-6"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <rect
+                            x="2"
+                            y="2"
+                            width="20"
+                            height="20"
+                            rx="4"
+                            stroke="#000000"
+                            strokeWidth="2"
+                          />
+                          <path
+                            d="M6 12l4 4l8 -8"
+                            stroke="#569866"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
                       </button>
                       <button
                         onClick={() => moveTodo(originalIndex, 'up')}
