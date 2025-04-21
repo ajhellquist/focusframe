@@ -238,39 +238,96 @@ export default function HabitsPage() {
             .map((habit) => {
               const done = habit.completedDates.includes(dateStr);
               return (
-              <div
-                key={habit.id}
-                className="flex items-center justify-between bg-white p-4 rounded shadow"
-              >
-                <span className="text-lg">{habit.title}</span>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => toggleHabit(habit.id)}
-                    className={`focus:outline-none ${done ? 'text-green-500' : 'text-red-500'} text-2xl`}
-                    aria-label={done
-                      ? `Mark ${habit.title} incomplete`
-                      : `Mark ${habit.title} complete`}
-                  >
-                    {done ? '✔️' : '✖️'}
-                  </button>
-                  <button
-                    onClick={() => handleEdit(habit.id)}
-                    className="text-blue-500 hover:text-blue-700"
-                    aria-label={`Edit creation date for ${habit.title}`}
-                  >
-                    ✏️
-                  </button>
-                  <button
-                    onClick={() => handleDelete(habit.id)}
-                    className="text-red-500 hover:text-red-700"
-                    aria-label={`Delete habit ${habit.title}`}
-                  >
-                    🗑️
-                  </button>
+                <div
+                  key={habit.id}
+                  className="flex items-center justify-between bg-white p-4 rounded shadow"
+                >
+                  {/* Left: completion box and title */}
+                  <div className="flex items-center space-x-2">
+                    {done ? (
+                      <button
+                        onClick={() => toggleHabit(habit.id)}
+                        className="p-1"
+                        aria-label={`Mark ${habit.title} incomplete`}
+                      >
+                        <svg
+                          className="w-6 h-6"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <rect
+                            x="2"
+                            y="2"
+                            width="20"
+                            height="20"
+                            rx="4"
+                            stroke="#000000"
+                            strokeWidth="2"
+                          />
+                          <path
+                            d="M6 12l4 4l8 -8"
+                            stroke="#569866"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => toggleHabit(habit.id)}
+                        className="p-1 group"
+                        aria-label={`Mark ${habit.title} complete`}
+                      >
+                        <svg
+                          className="w-6 h-6"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <rect
+                            x="2"
+                            y="2"
+                            width="20"
+                            height="20"
+                            rx="4"
+                            stroke="#000000"
+                            strokeWidth="2"
+                          />
+                          <path
+                            d="M6 12l4 4l8 -8"
+                            stroke="#569866"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="transition-opacity duration-200 opacity-0 group-hover:opacity-100"
+                          />
+                        </svg>
+                      </button>
+                    )}
+                    <span className="text-lg">{habit.title}</span>
+                  </div>
+                  {/* Right: edit and delete */}
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => handleEdit(habit.id)}
+                      className="text-blue-500 hover:text-blue-700"
+                      aria-label={`Edit creation date for ${habit.title}`}
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      onClick={() => handleDelete(habit.id)}
+                      className="text-red-500 hover:text-red-700"
+                      aria-label={`Delete habit ${habit.title}`}
+                    >
+                      🗑️
+                    </button>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
       </main>
     </>
