@@ -309,43 +309,43 @@ function TodosPage() {
             >
               <div className="w-full flex items-center">
                 <button
+                  onClick={() => completeTodo(todo.id)}
+                  className="p-1"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <rect
+                      x="2"
+                      y="2"
+                      width="20"
+                      height="20"
+                      rx="4"
+                      stroke="#000000"
+                      strokeWidth="2"
+                    />
+                    <path
+                      d="M6 12l4 4l8 -8"
+                      stroke="#569866"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+                <span className="flex-1 px-2">{todo.content}</span>
+                <button
                   onClick={() => toggleExpand(todo.id)}
-                  className="text-[#569866] mr-2"
+                  className="p-1 text-[#569866]"
                 >
                   {expandedIds.includes(todo.id) ? '▼' : '▶'}
                 </button>
-                <span className="flex-1">{todo.content}</span>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 ml-auto">
                   {!showCompleted && (
                     <>
-                      <button
-                        onClick={() => completeTodo(todo.id)}
-                        className="p-1"
-                      >
-                        <svg
-                          className="w-6 h-6"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <rect
-                            x="2"
-                            y="2"
-                            width="20"
-                            height="20"
-                            rx="4"
-                            stroke="#000000"
-                            strokeWidth="2"
-                          />
-                          <path
-                            d="M6 12l4 4l8 -8"
-                            stroke="#569866"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </button>
                       <button
                         onClick={() => moveTodo(originalIndex, 'up')}
                         disabled={originalIndex === 0}
@@ -373,7 +373,6 @@ function TodosPage() {
                   )}
                   <button
                     onClick={() => {
-                      // confirm before deleting
                       if (confirm('Are you sure you want to delete this to-do item?')) {
                         deleteTodo(todo.id);
                       }
