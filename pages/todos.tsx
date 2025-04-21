@@ -299,7 +299,7 @@ function TodosPage() {
                     onDragEnd: handleDragEnd,
                   }
                 : {})}
-              className={`bg-white rounded shadow ${
+              className={`bg-white rounded shadow transform transition-transform duration-150 ease-out hover:-translate-y-1 hover:shadow-lg hover:border-2 hover:border-[#569866] ${
                 expandedIds.includes(todo.id) ? 'p-4 flex flex-col space-y-4' : 'flex items-center p-2'
               } ${
                 !showCompleted && dragOverIndex === originalIndex && draggingIndex !== originalIndex
@@ -307,38 +307,70 @@ function TodosPage() {
                   : ''
               }`}
             >
-              <div className="w-full flex items-center">
-                <button
-                  onClick={() => completeTodo(todo.id)}
-                  className="p-1"
-                >
-                  <svg
-                    className="w-6 h-6"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
+              <div
+                className="w-full flex items-center cursor-pointer"
+                onClick={() => toggleExpand(todo.id)}
+              >
+                {showCompleted ? (
+                  <div className="p-1">
+                    <svg
+                      className="w-6 h-6"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <rect
+                        x="2"
+                        y="2"
+                        width="20"
+                        height="20"
+                        rx="4"
+                        stroke="#000000"
+                        strokeWidth="2"
+                      />
+                      <path
+                        d="M6 12l4 4l8 -8"
+                        stroke="#569866"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                ) : (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); completeTodo(todo.id); }}
+                    className="p-1 group"
                   >
-                    <rect
-                      x="2"
-                      y="2"
-                      width="20"
-                      height="20"
-                      rx="4"
-                      stroke="#000000"
-                      strokeWidth="2"
-                    />
-                    <path
-                      d="M6 12l4 4l8 -8"
-                      stroke="#569866"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
+                    <svg
+                      className="w-6 h-6"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <rect
+                        x="2"
+                        y="2"
+                        width="20"
+                        height="20"
+                        rx="4"
+                        stroke="#000000"
+                        strokeWidth="2"
+                      />
+                      <path
+                        d="M6 12l4 4l8 -8"
+                        stroke="#569866"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="transition-opacity duration-200 opacity-0 group-hover:opacity-100"
+                      />
+                    </svg>
+                  </button>
+                )}
                 <span className="flex-1 px-2">{todo.content}</span>
                 <button
-                  onClick={() => toggleExpand(todo.id)}
+                  onClick={(e) => { e.stopPropagation(); toggleExpand(todo.id); }}
                   className="p-1 text-[#569866]"
                 >
                   {expandedIds.includes(todo.id) ? '▼' : '▶'}
@@ -347,14 +379,14 @@ function TodosPage() {
                   {!showCompleted && (
                     <>
                       <button
-                        onClick={() => moveTodo(originalIndex, 'up')}
+                        onClick={(e) => { e.stopPropagation(); moveTodo(originalIndex, 'up'); }}
                         disabled={originalIndex === 0}
                         className="text-gray-500 disabled:opacity-50"
                       >
                         ↑
                       </button>
                       <button
-                        onClick={() => moveTodo(originalIndex, 'down')}
+                        onClick={(e) => { e.stopPropagation(); moveTodo(originalIndex, 'down'); }}
                         disabled={originalIndex === todos.length - 1}
                         className="text-gray-500 disabled:opacity-50"
                       >
@@ -364,7 +396,7 @@ function TodosPage() {
                   )}
                   {showCompleted && (
                     <button
-                      onClick={() => revertTodo(todo.id)}
+                      onClick={(e) => { e.stopPropagation(); revertTodo(todo.id); }}
                       className="text-yellow-500"
                       title="Revert to active"
                     >
@@ -372,7 +404,8 @@ function TodosPage() {
                     </button>
                   )}
                   <button
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       if (confirm('Are you sure you want to delete this to-do item?')) {
                         deleteTodo(todo.id);
                       }
