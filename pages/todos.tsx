@@ -176,7 +176,8 @@ function TodosPage() {
         return;
       }
       
-      // Only update local state after database update is successful
+      // Only update local state after database update is successful and animation is complete
+      // This prevents the layout shift that causes the checkmark to appear on the wrong item
       setTodos((prev) =>
         prev.map((t) =>
           t.id === id
@@ -185,29 +186,19 @@ function TodosPage() {
         )
       );
       
-      // Remove from recently completed after database is updated
-      // This happens after the animation completes
-      setTimeout(() => {
-        setRecentlyCompleted(prev => prev.filter(todoId => todoId !== id));
-      }, 300); // Increased from 100ms to 300ms to ensure animation completes fully
+      // Remove from recently completed immediately after state update
+      setRecentlyCompleted(prev => prev.filter(todoId => todoId !== id));
       
-    }, 700); // Match this with the CSS transition duration (700ms)
+    }, 800); // Slightly longer than the CSS transition duration to ensure animation completes
   };
   
-  // Modify the revertTodo function to include animation
+  // Modify the revertTodo function similarly
   const revertTodo = async (id: string) => {
     // First, add the todo to recently reverted list for animation
     setRecentlyReverted(prev => [...prev, id]);
     
     // Set a timeout to actually update the database and state after animation completes
     setTimeout(async () => {
-      // Optimistically mark as not complete and clear completion timestamp
-      setTodos((prev) =>
-        prev.map((t) =>
-          t.id === id ? { ...t, is_complete: false, completed_at: null } : t
-        )
-      );
-      
       const { data: updatedData, error } = await supabase
         .from('todos')
         .update({ is_complete: false, completed_at: null })
@@ -221,12 +212,17 @@ function TodosPage() {
         return;
       }
       
-      // Remove from recently reverted after database is updated
-      setTimeout(() => {
-        setRecentlyReverted(prev => prev.filter(todoId => todoId !== id));
-      }, 300); // Increased from 100ms to 300ms to ensure animation completes fully
+      // Only update local state after database update is successful and animation is complete
+      setTodos((prev) =>
+        prev.map((t) =>
+          t.id === id ? { ...t, is_complete: false, completed_at: null } : t
+        )
+      );
       
-    }, 700); // Match this with the CSS transition duration (700ms)
+      // Remove from recently reverted immediately after state update
+      setRecentlyReverted(prev => prev.filter(todoId => todoId !== id));
+      
+    }, 800); // Slightly longer than the CSS transition duration to ensure animation completes
   };
 
   const deleteTodo = async (id: string) => {
@@ -323,6 +319,12 @@ function TodosPage() {
           const originalIndex = todos.findIndex((t) => t.id === todo.id);
           const isCompleting = recentlyCompleted.includes(todo.id);
           const isReverting = recentlyReverted.includes(todo.id);
+          
+          // Don't render items that are in the middle of completing/reverting animation
+          // This prevents the animation from affecting other elements
+          if (isCompleting && !showCompleted) return null;
+          if (isReverting && showCompleted) return null;
+          
           return (
             <li
               key={todo.id}
@@ -341,7 +343,7 @@ function TodosPage() {
               className={`
                 bg-white rounded shadow 
                 transition-all duration-700 ease-out
-                ${isCompleting || isReverting ? 'opacity-0 -translate-y-4 h-0 my-0 overflow-hidden' : 'opacity-100'}
+                ${isCompleting || isReverting ? 'opacity-0 -translate-y-4 h-0 my-0 overflow-hidden pointer-events-none' : 'opacity-100'}
                 ${expandedIds.includes(todo.id) ? 'p-4 flex flex-col space-y-4' : 'flex items-center p-2'}
                 ${!showCompleted && dragOverIndex === originalIndex && draggingIndex !== originalIndex
                   ? 'border-2 border-dashed border-gray-400'
