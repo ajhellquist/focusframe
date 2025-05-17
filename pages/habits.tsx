@@ -314,8 +314,11 @@ export default function HabitsPage() {
                             className={`
                               transition-all duration-500 ease-out
                               ${isUncompleting ? 'opacity-0' : 'opacity-100'}
-                              ${isCompleting ? 'scale-200 origin-center' : 'scale-100'}
                             `}
+                            style={{
+                              transform: isCompleting ? 'scale(2)' : 'scale(1)',
+                              transformOrigin: 'center'
+                            }}
                           />
                         )}
                         
