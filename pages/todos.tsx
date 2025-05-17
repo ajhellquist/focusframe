@@ -162,16 +162,7 @@ function TodosPage() {
     setTimeout(async () => {
       const completedAt = new Date().toISOString();
       
-      // Update local state
-      setTodos((prev) =>
-        prev.map((t) =>
-          t.id === id
-            ? { ...t, is_complete: true, completed_at: completedAt }
-            : t
-        )
-      );
-      
-      // Update database
+      // Update database first before updating local state
       const { data: updatedData, error } = await supabase
         .from('todos')
         .update({ is_complete: true, completed_at: completedAt })
@@ -184,6 +175,15 @@ function TodosPage() {
         setRecentlyCompleted(prev => prev.filter(todoId => todoId !== id));
         return;
       }
+      
+      // Only update local state after database update is successful
+      setTodos((prev) =>
+        prev.map((t) =>
+          t.id === id
+            ? { ...t, is_complete: true, completed_at: completedAt }
+            : t
+        )
+      );
       
       // Remove from recently completed after database is updated
       // This happens after the animation completes
