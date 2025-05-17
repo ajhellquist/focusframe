@@ -158,11 +158,14 @@ function TodosPage() {
     // First, add the todo to recently completed list for animation
     setRecentlyCompleted(prev => [...prev, id]);
     
-    // Set a timeout to actually update the database and state after animation completes
+    // We'll use a 2-phase approach:
+    // 1. First mark as completing but keep in the list with animation
+    // 2. After animation completes, update database and move to completed list
+    
     setTimeout(async () => {
       const completedAt = new Date().toISOString();
       
-      // Update database first before updating local state
+      // Update database
       const { data: updatedData, error } = await supabase
         .from('todos')
         .update({ is_complete: true, completed_at: completedAt })
@@ -171,13 +174,11 @@ function TodosPage() {
         
       if (error) {
         console.error('Error completing todo:', error);
-        // Revert animation if there was an error
         setRecentlyCompleted(prev => prev.filter(todoId => todoId !== id));
         return;
       }
       
-      // Only update local state after database update is successful and animation is complete
-      // This prevents the layout shift that causes the checkmark to appear on the wrong item
+      // Update state only after animation is complete
       setTodos((prev) =>
         prev.map((t) =>
           t.id === id
@@ -186,10 +187,10 @@ function TodosPage() {
         )
       );
       
-      // Remove from recently completed immediately after state update
+      // Clear animation state
       setRecentlyCompleted(prev => prev.filter(todoId => todoId !== id));
       
-    }, 800); // Slightly longer than the CSS transition duration to ensure animation completes
+    }, 700); // Match this with the CSS transition duration
   };
   
   // Modify the revertTodo function similarly
@@ -320,11 +321,6 @@ function TodosPage() {
           const isCompleting = recentlyCompleted.includes(todo.id);
           const isReverting = recentlyReverted.includes(todo.id);
           
-          // Don't render items that are in the middle of completing/reverting animation
-          // This prevents the animation from affecting other elements
-          if (isCompleting && !showCompleted) return null;
-          if (isReverting && showCompleted) return null;
-          
           return (
             <li
               key={todo.id}
@@ -343,7 +339,7 @@ function TodosPage() {
               className={`
                 bg-white rounded shadow 
                 transition-all duration-700 ease-out
-                ${isCompleting || isReverting ? 'opacity-0 -translate-y-4 h-0 my-0 overflow-hidden pointer-events-none' : 'opacity-100'}
+                ${isCompleting || isReverting ? 'opacity-0 transform -translate-y-4 my-0 h-0 overflow-hidden' : 'opacity-100'}
                 ${expandedIds.includes(todo.id) ? 'p-4 flex flex-col space-y-4' : 'flex items-center p-2'}
                 ${!showCompleted && dragOverIndex === originalIndex && draggingIndex !== originalIndex
                   ? 'border-2 border-dashed border-gray-400'
@@ -356,7 +352,7 @@ function TodosPage() {
                 onClick={() => toggleExpand(todo.id)}
               >
                 {showCompleted ? (
-                  <div className="p-1">
+                  <div className="p-1 relative">
                     <svg
                       className="w-6 h-6"
                       viewBox="0 0 24 24"
@@ -384,7 +380,7 @@ function TodosPage() {
                 ) : (
                   <button
                     onClick={(e) => { e.stopPropagation(); completeTodo(todo.id); }}
-                    className="p-1 group"
+                    className="p-1 group relative"
                     aria-label="Complete todo"
                   >
                     <svg
@@ -408,7 +404,8 @@ function TodosPage() {
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        className={`transition-opacity duration-200 ${isCompleting ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                        className="transition-opacity duration-200 opacity-0 group-hover:opacity-100"
+                        style={{ opacity: isCompleting ? 1 : undefined }}
                       />
                     </svg>
                   </button>
