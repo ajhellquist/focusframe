@@ -27,6 +27,9 @@ function TodosPage() {
   const [recentlyCompleted, setRecentlyCompleted] = useState<string[]>([]);
   const [recentlyReverted, setRecentlyReverted] = useState<string[]>([]);
 
+  // Add audio reference
+  const completionSoundRef = React.useRef<HTMLAudioElement | null>(null);
+
   const toggleExpand = (id: string) =>
     setExpandedIds(prev =>
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
@@ -287,6 +290,11 @@ function TodosPage() {
           Completed
         </button>
       </div>
+
+      {/* Add audio element */}
+      <audio ref={completionSoundRef} preload="auto">
+        <source src="pingsound.mp3" type="audio/flac" />
+      </audio>
 
       {/* todo list */}
       <ul className="space-y-2">

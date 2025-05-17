@@ -5,11 +5,7 @@
 
 ## Core Improvements
 
-### 1. Add Transition Animations for Todo Completion
-- Implement a smooth fade-out and slide-up animation when a todo is completed
-- Track recently completed todos in state to apply transition effects
-- Use CSS transitions with 500ms duration for a natural feel
-- Remove the todo from the list only after the animation completes
+
 
 ### 2. Increase Touch Target Sizes
 - Enlarge all interactive elements to be at least 44x44px (Apple's recommended minimum)
