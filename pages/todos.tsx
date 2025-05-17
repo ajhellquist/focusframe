@@ -189,7 +189,7 @@ function TodosPage() {
       // This happens after the animation completes
       setTimeout(() => {
         setRecentlyCompleted(prev => prev.filter(todoId => todoId !== id));
-      }, 100); // Small delay to ensure state is updated after animation
+      }, 300); // Increased from 100ms to 300ms to ensure animation completes fully
       
     }, 700); // Match this with the CSS transition duration (700ms)
   };
@@ -224,7 +224,7 @@ function TodosPage() {
       // Remove from recently reverted after database is updated
       setTimeout(() => {
         setRecentlyReverted(prev => prev.filter(todoId => todoId !== id));
-      }, 100); // Small delay to ensure state is updated after animation
+      }, 300); // Increased from 100ms to 300ms to ensure animation completes fully
       
     }, 700); // Match this with the CSS transition duration (700ms)
   };
@@ -383,6 +383,7 @@ function TodosPage() {
                   <button
                     onClick={(e) => { e.stopPropagation(); completeTodo(todo.id); }}
                     className="p-1 group"
+                    aria-label="Complete todo"
                   >
                     <svg
                       className="w-6 h-6"
@@ -405,7 +406,7 @@ function TodosPage() {
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        className="transition-opacity duration-200 opacity-0 group-hover:opacity-100"
+                        className={`transition-opacity duration-200 ${isCompleting ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
                       />
                     </svg>
                   </button>
