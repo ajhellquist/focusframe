@@ -1,5 +1,8 @@
 # Mobile Responsive Design Improvements
 
+## Bugs
+- When completing a todo on mobile, when the animation is complete and the rest of the animations move up, the green checkmark appears on the next todo. It doesn't complete the todo however. We need the next todo to have have that checkmark.
+
 ## Core Improvements
 
 ### 1. Add Transition Animations for Todo Completion
