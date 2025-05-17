@@ -51,6 +51,11 @@ function TodosPage() {
     }
   };
 
+  // Add this state to track recently completed todos
+  const [recentlyCompleted, setRecentlyCompleted] = useState<string[]>([]);
+  // Add a state to track recently reverted todos (similar to recentlyCompleted)
+  const [recentlyReverted, setRecentlyReverted] = useState<string[]>([]);
+
   useEffect(() => {
     let todoChannel: any;
     (async () => {
@@ -150,46 +155,78 @@ function TodosPage() {
   };
 
   const completeTodo = async (id: string) => {
-    // Optimistically mark complete and set completion timestamp in UI
-    const completedAt = new Date().toISOString();
-    setTodos((prev) =>
-      prev.map((t) =>
-        t.id === id
-          ? { ...t, is_complete: true, completed_at: completedAt }
-          : t
-      )
-    );
-    const { data: updatedData, error } = await supabase
-      .from('todos')
-      .update({ is_complete: true, completed_at: completedAt })
-      .eq('id', id)
-      .select('*');
-    if (error) console.error('Error completing todo:', error);
-    else if (updatedData && updatedData.length > 0) {
-      const updated = updatedData[0] as Todo;
-      setTodos((prev) => prev.map((t) => (t.id === id ? updated : t)));
-    }
+    // First, add the todo to recently completed list for animation
+    setRecentlyCompleted(prev => [...prev, id]);
+    
+    // Set a timeout to actually update the database and state after animation completes
+    setTimeout(async () => {
+      const completedAt = new Date().toISOString();
+      
+      // Update local state
+      setTodos((prev) =>
+        prev.map((t) =>
+          t.id === id
+            ? { ...t, is_complete: true, completed_at: completedAt }
+            : t
+        )
+      );
+      
+      // Update database
+      const { data: updatedData, error } = await supabase
+        .from('todos')
+        .update({ is_complete: true, completed_at: completedAt })
+        .eq('id', id)
+        .select('*');
+        
+      if (error) {
+        console.error('Error completing todo:', error);
+        // Revert animation if there was an error
+        setRecentlyCompleted(prev => prev.filter(todoId => todoId !== id));
+        return;
+      }
+      
+      // Remove from recently completed after database is updated
+      // This happens after the animation completes
+      setTimeout(() => {
+        setRecentlyCompleted(prev => prev.filter(todoId => todoId !== id));
+      }, 100); // Small delay to ensure state is updated after animation
+      
+    }, 700); // Match this with the CSS transition duration (700ms)
   };
   
-  // Revert a completed todo back to active
+  // Modify the revertTodo function to include animation
   const revertTodo = async (id: string) => {
-    // Optimistically mark as not complete and clear completion timestamp
-    setTodos((prev) =>
-      prev.map((t) =>
-        t.id === id ? { ...t, is_complete: false, completed_at: null } : t
-      )
-    );
-    const { data: updatedData, error } = await supabase
-      .from('todos')
-      .update({ is_complete: false, completed_at: null })
-      .eq('id', id)
-      .select('*');
-    if (error) {
-      console.error('Error reverting todo:', error);
-    } else if (updatedData && updatedData.length > 0) {
-      const updated = updatedData[0] as Todo;
-      setTodos((prev) => prev.map((t) => (t.id === id ? updated : t)));
-    }
+    // First, add the todo to recently reverted list for animation
+    setRecentlyReverted(prev => [...prev, id]);
+    
+    // Set a timeout to actually update the database and state after animation completes
+    setTimeout(async () => {
+      // Optimistically mark as not complete and clear completion timestamp
+      setTodos((prev) =>
+        prev.map((t) =>
+          t.id === id ? { ...t, is_complete: false, completed_at: null } : t
+        )
+      );
+      
+      const { data: updatedData, error } = await supabase
+        .from('todos')
+        .update({ is_complete: false, completed_at: null })
+        .eq('id', id)
+        .select('*');
+        
+      if (error) {
+        console.error('Error reverting todo:', error);
+        // Revert animation if there was an error
+        setRecentlyReverted(prev => prev.filter(todoId => todoId !== id));
+        return;
+      }
+      
+      // Remove from recently reverted after database is updated
+      setTimeout(() => {
+        setRecentlyReverted(prev => prev.filter(todoId => todoId !== id));
+      }, 100); // Small delay to ensure state is updated after animation
+      
+    }, 700); // Match this with the CSS transition duration (700ms)
   };
 
   const deleteTodo = async (id: string) => {
@@ -284,6 +321,8 @@ function TodosPage() {
       <ul className="space-y-2">
         {displayedTodos.map((todo, idx) => {
           const originalIndex = todos.findIndex((t) => t.id === todo.id);
+          const isCompleting = recentlyCompleted.includes(todo.id);
+          const isReverting = recentlyReverted.includes(todo.id);
           return (
             <li
               key={todo.id}
@@ -299,13 +338,16 @@ function TodosPage() {
                     onDragEnd: handleDragEnd,
                   }
                 : {})}
-              className={`bg-white rounded shadow transform transition-transform duration-150 ease-out hover:-translate-y-1 hover:shadow-lg hover:border-2 hover:border-[#569866] ${
-                expandedIds.includes(todo.id) ? 'p-4 flex flex-col space-y-4' : 'flex items-center p-2'
-              } ${
-                !showCompleted && dragOverIndex === originalIndex && draggingIndex !== originalIndex
+              className={`
+                bg-white rounded shadow 
+                transition-all duration-700 ease-out
+                ${isCompleting || isReverting ? 'opacity-0 -translate-y-4 h-0 my-0 overflow-hidden' : 'opacity-100'}
+                ${expandedIds.includes(todo.id) ? 'p-4 flex flex-col space-y-4' : 'flex items-center p-2'}
+                ${!showCompleted && dragOverIndex === originalIndex && draggingIndex !== originalIndex
                   ? 'border-2 border-dashed border-gray-400'
                   : ''
-              }`}
+                }
+              `}
             >
               <div
                 className="w-full flex items-center cursor-pointer"

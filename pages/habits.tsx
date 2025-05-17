@@ -45,6 +45,10 @@ export default function HabitsPage() {
   }, [habits]);
   const earliestDateStr = getLocalDateString(earliestDate);
 
+  // Add these states to track recently toggled habits
+  const [recentlyCompleted, setRecentlyCompleted] = useState<string[]>([]);
+  const [recentlyUncompleted, setRecentlyUncompleted] = useState<string[]>([]);
+
   const handleDelete = (id: string) => {
     if (confirm('Are you sure you want to delete this habit?')) {
       setHabits((prev) => prev.filter((h) => h.id !== id));
@@ -168,37 +172,64 @@ export default function HabitsPage() {
     const habit = habits.find((h) => h.id === id);
     if (!habit) return;
     const isDone = habit.completedDates.includes(dateStr);
+    
+    // Add to animation tracking state based on the action
     if (!isDone) {
-      const { error } = await supabase
-        .from('habit_completions')
-        .insert([{ habit_id: id, completed_date: dateStr }]);
-      if (error) {
-        console.error('Error marking completion:', error.message);
-        return;
-      }
+      setRecentlyCompleted(prev => [...prev, id]);
     } else {
-      const { error } = await supabase
-        .from('habit_completions')
-        .delete()
-        .eq('habit_id', id)
-        .eq('completed_date', dateStr);
-      if (error) {
-        console.error('Error removing completion:', error.message);
-        return;
-      }
+      setRecentlyUncompleted(prev => [...prev, id]);
     }
-    setHabits((prev) =>
-      prev.map((h) =>
-        h.id === id
-          ? {
-              ...h,
-              completedDates: isDone
-                ? h.completedDates.filter((d) => d !== dateStr)
-                : [...h.completedDates, dateStr],
-            }
-          : h
-      )
-    );
+    
+    // Set a timeout to update the database after animation starts
+    setTimeout(async () => {
+      if (!isDone) {
+        const { error } = await supabase
+          .from('habit_completions')
+          .insert([{ habit_id: id, completed_date: dateStr }]);
+        if (error) {
+          console.error('Error marking completion:', error.message);
+          // Remove from animation state if there was an error
+          setRecentlyCompleted(prev => prev.filter(habitId => habitId !== id));
+          return;
+        }
+      } else {
+        const { error } = await supabase
+          .from('habit_completions')
+          .delete()
+          .eq('habit_id', id)
+          .eq('completed_date', dateStr);
+        if (error) {
+          console.error('Error removing completion:', error.message);
+          // Remove from animation state if there was an error
+          setRecentlyUncompleted(prev => prev.filter(habitId => habitId !== id));
+          return;
+        }
+      }
+      
+      // Update local state
+      setHabits((prev) =>
+        prev.map((h) =>
+          h.id === id
+            ? {
+                ...h,
+                completedDates: isDone
+                  ? h.completedDates.filter((d) => d !== dateStr)
+                  : [...h.completedDates, dateStr],
+              }
+            : h
+        )
+      );
+      
+      // Remove from animation states after a delay
+      setTimeout(() => {
+        if (!isDone) {
+          setRecentlyCompleted(prev => prev.filter(habitId => habitId !== id));
+        } else {
+          setRecentlyUncompleted(prev => prev.filter(habitId => habitId !== id));
+        }
+      }, 100);
+      
+    }, 500); // Changed from 700ms to 500ms
   };
 
   return (
@@ -237,75 +268,70 @@ export default function HabitsPage() {
             .filter((habit) => habit.createdDate <= dateStr)
             .map((habit) => {
               const done = habit.completedDates.includes(dateStr);
+              const isCompleting = recentlyCompleted.includes(habit.id);
+              const isUncompleting = recentlyUncompleted.includes(habit.id);
+              
               return (
                 <div
                   key={habit.id}
-                  className="flex items-center justify-between bg-white p-4 rounded shadow"
+                  className={`
+                    flex items-center justify-between bg-white p-4 rounded shadow
+                    transition-all duration-500 ease-out
+                  `}
                 >
                   {/* Left: completion box and title */}
                   <div className="flex items-center space-x-2">
-                    {done ? (
-                      <button
-                        onClick={() => toggleHabit(habit.id)}
-                        className="p-1"
-                        aria-label={`Mark ${habit.title} incomplete`}
+                    <button
+                      onClick={() => toggleHabit(habit.id)}
+                      className="p-1 relative"
+                      aria-label={done ? `Mark ${habit.title} incomplete` : `Mark ${habit.title} complete`}
+                    >
+                      <svg
+                        className="w-6 h-6"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
                       >
-                        <svg
-                          className="w-6 h-6"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <rect
-                            x="2"
-                            y="2"
-                            width="20"
-                            height="20"
-                            rx="4"
-                            stroke="#000000"
+                        {/* The black box is always visible */}
+                        <rect
+                          x="2"
+                          y="2"
+                          width="20"
+                          height="20"
+                          rx="4"
+                          stroke="#000000"
+                          strokeWidth="2"
+                        />
+                        
+                        {/* The checkmark fades in/out with animation */}
+                        {(done || isCompleting) && (
+                          <path
+                            d="M6 12l4 4l8 -8"
+                            stroke={isCompleting ? "#4ade80" : "#569866"}
                             strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className={`
+                              transition-all duration-500 ease-out
+                              ${isUncompleting ? 'opacity-0' : 'opacity-100'}
+                              ${isCompleting ? 'scale-200 origin-center' : 'scale-100'}
+                            `}
                           />
+                        )}
+                        
+                        {/* Show hover state checkmark for unchecked items */}
+                        {!done && !isCompleting && (
                           <path
                             d="M6 12l4 4l8 -8"
                             stroke="#569866"
                             strokeWidth="2"
                             strokeLinecap="round"
                             strokeLinejoin="round"
+                            className="transition-opacity duration-200 opacity-0 group-hover:opacity-30"
                           />
-                        </svg>
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => toggleHabit(habit.id)}
-                        className="p-1 group"
-                        aria-label={`Mark ${habit.title} complete`}
-                      >
-                        <svg
-                          className="w-6 h-6"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <rect
-                            x="2"
-                            y="2"
-                            width="20"
-                            height="20"
-                            rx="4"
-                            stroke="#000000"
-                            strokeWidth="2"
-                          />
-                          <path
-                            d="M6 12l4 4l8 -8"
-                            stroke="#569866"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="transition-opacity duration-200 opacity-0 group-hover:opacity-100"
-                          />
-                        </svg>
-                      </button>
-                    )}
+                        )}
+                      </svg>
+                    </button>
                     <span className="text-lg">{habit.title}</span>
                   </div>
                   {/* Right: edit and delete */}
