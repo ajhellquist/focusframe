@@ -180,6 +180,9 @@ function TodosPage() {
         prev.map(t => (t.id === id ? { ...t, is_complete: true, completed_at: completedAt } : t))
       );
       setRecentlyCompleted(prev => prev.filter(tid => tid !== id));
+      if (completionSoundRef.current) {
+        completionSoundRef.current.play();
+      }
     }, 700);
   };
 
