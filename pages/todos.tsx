@@ -296,7 +296,8 @@ function TodosPage() {
 
       {/* Add audio element */}
       <audio ref={completionSoundRef} preload="auto">
-        <source src="pingsound.mp3" type="audio/flac" />
+        <source src="/pingsound.mp3" type="audio/mp3" />
+        Your browser does not support the audio element.
       </audio>
 
       {/* todo list */}
