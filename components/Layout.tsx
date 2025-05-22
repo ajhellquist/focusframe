@@ -25,20 +25,20 @@ export default function Layout({ children }: LayoutProps) {
               className="h-8 w-auto mr-4"
             />
             <nav className="space-x-4">
-              <Link href="/dashboard" className="text-gray-700 hover:text-blue-500">
+              <Link href="/dashboard" className="text-gray-700 hover:text-blue-500 p-3">
                 Dashboard
               </Link>
-              <Link href="/todos" className="text-gray-700 hover:text-blue-500">
+              <Link href="/todos" className="text-gray-700 hover:text-blue-500 p-3">
                 To‑Dos
               </Link>
-              <Link href="/habits" className="text-gray-700 hover:text-blue-500">
+              <Link href="/habits" className="text-gray-700 hover:text-blue-500 p-3">
                 Habits
               </Link>
             </nav>
           </div>
           <button
             onClick={handleSignOut}
-            className="bg-red-500 text-white px-3 py-1 rounded"
+            className="bg-red-500 text-white px-3 py-3 rounded"
           >
             Sign Out
           </button>
