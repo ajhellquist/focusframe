@@ -6,13 +6,6 @@ none
 ## Core Improvements
 
 
-
-### 2. Increase Touch Target Sizes
-- Enlarge all interactive elements to be at least 44x44px (Apple's recommended minimum)
-- Add padding to buttons (especially the up/down arrows and delete buttons)
-- Increase font size for button text and icons
-- Ensure sufficient spacing between adjacent touch targets to prevent accidental taps
-
 ### 3. Responsive Layout for Header Navigation
 - Implement a mobile-friendly navigation menu that collapses into a hamburger menu on small screens
 - Create a slide-down or slide-in menu for mobile navigation
