@@ -269,7 +269,7 @@ function TodosPage() {
           }}
           className="flex-1 border rounded p-2 mr-2"
         />
-        <button onClick={addTodo} className="bg-[#569866] text-white rounded px-4">
+        <button onClick={addTodo} className="bg-[#569866] text-white rounded px-4 py-3 text-lg">
           Add
         </button>
       </div>
@@ -278,7 +278,7 @@ function TodosPage() {
       <div className="flex mb-4 space-x-2">
         <button
           onClick={() => setShowCompleted(false)}
-          className={`px-4 py-2 rounded ${
+          className={`px-4 py-3 rounded ${
             !showCompleted ? 'bg-[#569866] text-white' : 'bg-gray-200 text-gray-700'
           }`}
         >
@@ -286,7 +286,7 @@ function TodosPage() {
         </button>
         <button
           onClick={() => setShowCompleted(true)}
-          className={`px-4 py-2 rounded ${
+          className={`px-4 py-3 rounded ${
             showCompleted ? 'bg-[#569866] text-white' : 'bg-gray-200 text-gray-700'
           }`}
         >
@@ -359,7 +359,7 @@ function TodosPage() {
                       e.stopPropagation();
                       completeTodo(todo.id);
                     }}
-                    className="p-1 group"
+                    className="p-3 group"
                     aria-label="Complete todo"
                   >
                     <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
@@ -383,7 +383,7 @@ function TodosPage() {
                     e.stopPropagation();
                     toggleExpand(todo.id);
                   }}
-                  className="p-1 text-[#569866]"
+                  className="p-3 text-[#569866] text-2xl"
                 >
                   {expandedIds.includes(todo.id) ? '▼' : '▶'}
                 </button>
@@ -398,7 +398,7 @@ function TodosPage() {
                           moveTodo(originalIndex, 'up');
                         }}
                         disabled={originalIndex === 0}
-                        className="text-gray-500 disabled:opacity-50"
+                        className="text-gray-500 disabled:opacity-50 p-3 text-2xl"
                       >
                         ↑
                       </button>
@@ -408,7 +408,7 @@ function TodosPage() {
                           moveTodo(originalIndex, 'down');
                         }}
                         disabled={originalIndex === todos.length - 1}
-                        className="text-gray-500 disabled:opacity-50"
+                        className="text-gray-500 disabled:opacity-50 p-3 text-2xl"
                       >
                         ↓
                       </button>
@@ -420,7 +420,7 @@ function TodosPage() {
                         e.stopPropagation();
                         revertTodo(todo.id);
                       }}
-                      className="text-yellow-500"
+                      className="text-yellow-500 p-3 text-2xl"
                       title="Revert to active"
                     >
                       ↺
@@ -431,7 +431,7 @@ function TodosPage() {
                       e.stopPropagation();
                       if (confirm('Delete this to-do item?')) deleteTodo(todo.id);
                     }}
-                    className="text-red-500"
+                    className="text-red-500 p-3 text-2xl"
                   >
                     🗑
                   </button>

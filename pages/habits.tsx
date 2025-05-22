@@ -243,7 +243,7 @@ export default function HabitsPage() {
             <button
               onClick={goPrev}
               disabled={dateStr === earliestDateStr}
-              className="p-2 bg-white rounded shadow disabled:opacity-50 hover:bg-gray-100 disabled:hover:bg-white"
+              className="p-3 text-xl bg-white rounded shadow disabled:opacity-50 hover:bg-gray-100 disabled:hover:bg-white"
             >
               &lt;
             </button>
@@ -251,14 +251,14 @@ export default function HabitsPage() {
             <button
               onClick={goNext}
               disabled={dateStr === getLocalDateString(today)}
-              className="p-2 bg-white rounded shadow disabled:opacity-50 hover:bg-gray-100 disabled:hover:bg-white"
+              className="p-3 text-xl bg-white rounded shadow disabled:opacity-50 hover:bg-gray-100 disabled:hover:bg-white"
             >
               &gt;
             </button>
           </div>
           <button
             onClick={addHabit}
-            className="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700"
+            className="bg-green-600 text-white px-4 py-3 text-lg rounded shadow hover:bg-green-700"
           >
             + Add Habit
           </button>
@@ -283,7 +283,7 @@ export default function HabitsPage() {
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => toggleHabit(habit.id)}
-                      className="p-1 relative"
+                      className="p-3 relative group"
                       aria-label={done ? `Mark ${habit.title} incomplete` : `Mark ${habit.title} complete`}
                     >
                       <svg
@@ -341,14 +341,14 @@ export default function HabitsPage() {
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => handleEdit(habit.id)}
-                      className="text-blue-500 hover:text-blue-700"
+                      className="text-blue-500 hover:text-blue-700 p-3 text-2xl"
                       aria-label={`Edit creation date for ${habit.title}`}
                     >
                       ✏️
                     </button>
                     <button
                       onClick={() => handleDelete(habit.id)}
-                      className="text-red-500 hover:text-red-700"
+                      className="text-red-500 hover:text-red-700 p-3 text-2xl"
                       aria-label={`Delete habit ${habit.title}`}
                     >
                       🗑️
