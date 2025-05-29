@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Head from 'next/head';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../components/AuthProvider';
+import ContextMenu from '../components/ContextMenu';
 /**
  * Get a YYYY-MM-DD date string for a Date in the local timezone.
  */
@@ -337,22 +338,14 @@ export default function HabitsPage() {
                     </button>
                     <span className="text-lg">{habit.title}</span>
                   </div>
-                  {/* Right: edit and delete */}
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => handleEdit(habit.id)}
-                      className="text-blue-500 hover:text-blue-700 p-3 text-2xl"
-                      aria-label={`Edit creation date for ${habit.title}`}
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      onClick={() => handleDelete(habit.id)}
-                      className="text-red-500 hover:text-red-700 p-3 text-2xl"
-                      aria-label={`Delete habit ${habit.title}`}
-                    >
-                      🗑️
-                    </button>
+                  {/* Right: Context Menu */}
+                  <div className="flex items-center">
+                    <ContextMenu
+                      habitId={habit.id}
+                      habitTitle={habit.title}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                    />
                   </div>
                 </div>
               );
