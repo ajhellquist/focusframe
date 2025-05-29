@@ -341,10 +341,11 @@ export default function HabitsPage() {
                   {/* Right: Context Menu */}
                   <div className="flex items-center">
                     <ContextMenu
-                      habitId={habit.id}
-                      habitTitle={habit.title}
-                      onEdit={handleEdit}
-                      onDelete={handleDelete}
+                      menuButtonAriaLabel={`Options for ${habit.title}`}
+                      items={[
+                        { label: "Change start date", action: () => handleEdit(habit.id) },
+                        { label: "Delete", action: () => handleDelete(habit.id) }
+                      ]}
                     />
                   </div>
                 </div>

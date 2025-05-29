@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseClient';
+import ContextMenu from '../components/ContextMenu';
 
 type Todo = {
   id: string;
@@ -409,15 +410,17 @@ function TodosPage() {
                       >
                         ↺
                       </button>
-                      <button
-                        onClick={e => {
-                          e.stopPropagation();
-                          if (confirm('Delete this to-do item?')) deleteTodo(todo.id);
-                        }}
-                        className="text-red-500 p-3 text-2xl"
-                      >
-                        🗑
-                      </button>
+                      <ContextMenu
+                        menuButtonAriaLabel={`Options for to-do: ${todo.content}`}
+                        items={[{
+                          label: "Delete",
+                          action: () => {
+                            if (confirm('Delete this to-do item?')) {
+                              deleteTodo(todo.id);
+                            }
+                          }
+                        }]}
+                      />
                     </div>
                   </div>
 
@@ -548,15 +551,17 @@ function TodosPage() {
                   >
                     ↓
                   </button>
-                  <button
-                    onClick={e => {
-                      e.stopPropagation();
-                      if (confirm('Delete this to-do item?')) deleteTodo(todo.id);
-                    }}
-                    className="text-red-500 p-3 text-2xl"
-                  >
-                    🗑
-                  </button>
+                  <ContextMenu
+                    menuButtonAriaLabel={`Options for to-do: ${todo.content}`}
+                    items={[{
+                      label: "Delete",
+                      action: () => {
+                        if (confirm('Delete this to-do item?')) {
+                          deleteTodo(todo.id);
+                        }
+                      }
+                    }]}
+                  />
                 </div>
               </div>
 

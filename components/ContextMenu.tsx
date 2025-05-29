@@ -1,13 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-interface ContextMenuProps {
-  habitId: string;
-  habitTitle: string;
-  onEdit: (habitId: string) => void;
-  onDelete: (habitId: string) => void;
+export interface MenuItem {
+  label: string;
+  action: () => void;
+  className?: string;
 }
 
-const ContextMenu: React.FC<ContextMenuProps> = ({ habitId, habitTitle, onEdit, onDelete }) => {
+interface ContextMenuProps {
+  items: MenuItem[];
+  menuButtonAriaLabel?: string;
+}
+
+const ContextMenu: React.FC<ContextMenuProps> = ({ items, menuButtonAriaLabel = "Open menu" }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -15,13 +19,8 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ habitId, habitTitle, onEdit, 
     setIsOpen(!isOpen);
   };
 
-  const handleEdit = () => {
-    onEdit(habitId);
-    setIsOpen(false);
-  };
-
-  const handleDelete = () => {
-    onDelete(habitId);
+  const handleItemClick = (itemAction: () => void) => {
+    itemAction();
     setIsOpen(false);
   };
 
@@ -47,7 +46,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ habitId, habitTitle, onEdit, 
     <div className="relative inline-block text-left" ref={menuRef}>
       <button
         onClick={toggleMenu}
-        aria-label={`Options for habit: ${habitTitle}`}
+        aria-label={menuButtonAriaLabel}
         aria-haspopup="true"
         aria-expanded={isOpen}
         className="p-2 rounded-full hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
@@ -67,23 +66,19 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ habitId, habitTitle, onEdit, 
           className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10"
           role="menu"
           aria-orientation="vertical"
-          aria-labelledby={`Options for habit: ${habitTitle}`}
+          aria-labelledby={menuButtonAriaLabel}
         >
           <div className="py-1" role="none">
-            <button
-              onClick={handleEdit}
-              className="text-gray-700 block w-full px-4 py-2 text-sm text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
-              role="menuitem"
-            >
-              Change start date
-            </button>
-            <button
-              onClick={handleDelete}
-              className="text-gray-700 block w-full px-4 py-2 text-sm text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
-              role="menuitem"
-            >
-              Delete
-            </button>
+            {items.map((item, index) => (
+              <button
+                key={index}
+                onClick={() => handleItemClick(item.action)}
+                className={`text-gray-700 block w-full px-4 py-2 text-sm text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none ${item.className || ''}`}
+                role="menuitem"
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
         </div>
       )}
