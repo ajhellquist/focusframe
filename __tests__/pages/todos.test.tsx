@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import TodosPage from '../todos'; // Adjust path as necessary
+import TodosPage from '../../pages/todos'; // Adjust path as necessary
 import { supabase } from '../../lib/supabaseClient'; // Adjust path for mock
 
 // Mock next/router
