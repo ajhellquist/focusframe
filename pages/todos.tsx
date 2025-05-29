@@ -12,6 +12,44 @@ type Todo = {
   detail?: string | null;
 };
 
+// Helper function to format date as "Weekday, Month Day, Year"
+const formatDateOnlyString = (dateString: string): string => {
+  return new Date(dateString).toLocaleDateString(undefined, {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+};
+
+// Groups todos by completion date
+type GroupedTodos = {
+  [date: string]: Todo[];
+};
+
+const groupTodosByDate = (todos: Todo[]): GroupedTodos => {
+  const completedTodos = todos.filter(
+    todo => todo.is_complete && todo.completed_at
+  );
+
+  // Sort by completed_at descending (most recent first)
+  completedTodos.sort(
+    (a, b) =>
+      new Date(b.completed_at!).getTime() - new Date(a.completed_at!).getTime()
+  );
+
+  const grouped: GroupedTodos = {};
+  completedTodos.forEach(todo => {
+    const dateKey = formatDateOnlyString(todo.completed_at!);
+    if (!grouped[dateKey]) {
+      grouped[dateKey] = [];
+    }
+    grouped[dateKey].push(todo);
+  });
+
+  return grouped;
+};
+
 function TodosPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
@@ -247,7 +285,11 @@ function TodosPage() {
   };
 
   /* ---------- render helpers ---------- */
-  const displayedTodos = todos.filter(t => (showCompleted ? t.is_complete : !t.is_complete));
+  const groupedCompletedTodos = React.useMemo(() => groupTodosByDate(todos), [todos]);
+
+  // displayedTodos will now only refer to non-completed tasks for the current view
+  const displayedTodos = todos.filter(t => !t.is_complete);
+
   if (!user) return null;
 
   return (
@@ -302,10 +344,125 @@ function TodosPage() {
 
       {/* todo list */}
       <ul className="space-y-2">
-        {displayedTodos.map(todo => {
+        {/* Render grouped completed todos */}
+        {showCompleted && groupedCompletedTodos && Object.entries(groupedCompletedTodos).map(([date, todosInGroup]) => (
+          <React.Fragment key={date}>
+            <li className="date-separator bg-slate-100 px-3 py-2 text-sm font-medium text-slate-600 rounded-md mt-3 mb-1">
+              {date}
+            </li>
+            {todosInGroup.map(todo => {
+              // const originalIndex = todos.findIndex(t => t.id === todo.id); // Less relevant for completed
+              const isCompleting = recentlyCompleted.includes(todo.id); // Should be false here
+              const isReverting = recentlyReverted.includes(todo.id);
+
+              return (
+                <li
+                  key={todo.id}
+                  // draggable is false when showCompleted is true
+                  className={`
+                    bg-white rounded shadow
+                    transition-all duration-700 ease-out
+                    ${isReverting ? 'opacity-0 transform -translate-y-4 my-0 h-0 overflow-hidden' : 'opacity-100'}
+                    ${expandedIds.includes(todo.id) ? 'p-4 flex flex-col space-y-4' : 'flex items-center p-2'}
+                  `}
+                >
+                  {/* row content */}
+                  <div
+                    className="w-full flex items-center cursor-pointer"
+                    onClick={() => toggleExpand(todo.id)}
+                  >
+                    {/* completed icon */}
+                    <div className="p-1">
+                      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                        <rect x="2" y="2" width="20" height="20" rx="4" stroke="#000" strokeWidth="2" />
+                        <path
+                          d="M6 12l4 4l8 -8"
+                          stroke="#569866"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+
+                    {/* text & expand toggle */}
+                    <span className="flex-1 px-2">{todo.content}</span>
+                    <button
+                      onClick={e => {
+                        e.stopPropagation();
+                        toggleExpand(todo.id);
+                      }}
+                      className="p-3 text-[#569866] text-2xl"
+                    >
+                      {expandedIds.includes(todo.id) ? '▼' : '▶'}
+                    </button>
+
+                    {/* action buttons */}
+                    <div className="flex items-center space-x-2 ml-auto">
+                      <button
+                        onClick={e => {
+                          e.stopPropagation();
+                          revertTodo(todo.id);
+                        }}
+                        className="text-yellow-500 p-3 text-2xl"
+                        title="Revert to active"
+                      >
+                        ↺
+                      </button>
+                      <button
+                        onClick={e => {
+                          e.stopPropagation();
+                          if (confirm('Delete this to-do item?')) deleteTodo(todo.id);
+                        }}
+                        className="text-red-500 p-3 text-2xl"
+                      >
+                        🗑
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* details / expansion panel */}
+                  {expandedIds.includes(todo.id) && (
+                    <div className="mt-2 w-full border-t pt-2">
+                      <p>Date Created: {formatDate(todo.created_at)}</p>
+                      <p>
+                        Date Completed:{' '}
+                        {todo.completed_at ? formatDate(todo.completed_at) : 'N/A'}
+                      </p>
+                      <div className="mt-2">
+                        <label htmlFor={`details-${todo.id}`} className="block mb-1 font-medium">
+                          Details:
+                        </label>
+                        <textarea
+                          id={`details-${todo.id}`}
+                          value={detailsMap[todo.id] || ''}
+                          onChange={e =>
+                            setDetailsMap(prev => ({ ...prev, [todo.id]: e.target.value }))
+                          }
+                          onBlur={e => {
+                            const details = e.target.value;
+                            supabase
+                              .from('todos')
+                              .update({ detail: details })
+                              .eq('id', todo.id);
+                          }}
+                          className="w-full border rounded p-2"
+                          rows={3}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </React.Fragment>
+        ))}
+
+        {/* Render current (non-completed) todos */}
+        {!showCompleted && displayedTodos.map(todo => {
           const originalIndex = todos.findIndex(t => t.id === todo.id);
           const isCompleting = recentlyCompleted.includes(todo.id);
-          const isReverting = recentlyReverted.includes(todo.id);
+          // const isReverting = recentlyReverted.includes(todo.id); // Not relevant for current todos
 
           /* ✅ updated tick CSS — works only on real hover devices */
           const tickPathClass = `
@@ -317,21 +474,17 @@ function TodosPage() {
           return (
             <li
               key={todo.id}
-              draggable={!showCompleted}
-              {...(!showCompleted
-                ? {
-                    onDragStart: e => handleDragStart(e, originalIndex),
-                    onDragOver: e => handleDragOver(e, originalIndex),
-                    onDrop: handleDrop,
-                    onDragEnd: handleDragEnd,
-                  }
-                : {})}
+              draggable={true} // always true for non-completed
+              onDragStart={e => handleDragStart(e, originalIndex)}
+              onDragOver={e => handleDragOver(e, originalIndex)}
+              onDrop={handleDrop}
+              onDragEnd={handleDragEnd}
               className={`
                 bg-white rounded shadow
                 transition-all duration-700 ease-out
-                ${isCompleting || isReverting ? 'opacity-0 transform -translate-y-4 my-0 h-0 overflow-hidden' : 'opacity-100'}
+                ${isCompleting ? 'opacity-0 transform -translate-y-4 my-0 h-0 overflow-hidden' : 'opacity-100'}
                 ${expandedIds.includes(todo.id) ? 'p-4 flex flex-col space-y-4' : 'flex items-center p-2'}
-                ${!showCompleted && dragOverIndex === originalIndex && draggingIndex !== originalIndex ? 'border-2 border-dashed border-gray-400' : ''}
+                ${dragOverIndex === originalIndex && draggingIndex !== originalIndex ? 'border-2 border-dashed border-gray-400' : ''}
               `}
             >
               {/* row content */}
@@ -339,42 +492,27 @@ function TodosPage() {
                 className="w-full flex items-center cursor-pointer"
                 onClick={() => toggleExpand(todo.id)}
               >
-                {/* checkbox / completed icon */}
-                {showCompleted ? (
-                  <div className="p-1">
-                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                      <rect x="2" y="2" width="20" height="20" rx="4" stroke="#000" strokeWidth="2" />
-                      <path
-                        d="M6 12l4 4l8 -8"
-                        stroke="#569866"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                ) : (
-                  <button
-                    onClick={e => {
-                      e.stopPropagation();
-                      completeTodo(todo.id);
-                    }}
-                    className="p-3 group"
-                    aria-label="Complete todo"
-                  >
-                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                      <rect x="2" y="2" width="20" height="20" rx="4" stroke="#000" strokeWidth="2" />
-                      <path
-                        d="M6 12l4 4l8 -8"
-                        stroke="#569866"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className={tickPathClass}
-                      />
-                    </svg>
-                  </button>
-                )}
+                {/* checkbox */}
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    completeTodo(todo.id);
+                  }}
+                  className="p-3 group"
+                  aria-label="Complete todo"
+                >
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                    <rect x="2" y="2" width="20" height="20" rx="4" stroke="#000" strokeWidth="2" />
+                    <path
+                      d="M6 12l4 4l8 -8"
+                      stroke="#569866"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className={tickPathClass}
+                    />
+                  </svg>
+                </button>
 
                 {/* text & expand toggle */}
                 <span className="flex-1 px-2">{todo.content}</span>
@@ -390,42 +528,26 @@ function TodosPage() {
 
                 {/* action buttons */}
                 <div className="flex items-center space-x-2 ml-auto">
-                  {!showCompleted && (
-                    <>
-                      <button
-                        onClick={e => {
-                          e.stopPropagation();
-                          moveTodo(originalIndex, 'up');
-                        }}
-                        disabled={originalIndex === 0}
-                        className="text-gray-500 disabled:opacity-50 p-3 text-2xl"
-                      >
-                        ↑
-                      </button>
-                      <button
-                        onClick={e => {
-                          e.stopPropagation();
-                          moveTodo(originalIndex, 'down');
-                        }}
-                        disabled={originalIndex === todos.length - 1}
-                        className="text-gray-500 disabled:opacity-50 p-3 text-2xl"
-                      >
-                        ↓
-                      </button>
-                    </>
-                  )}
-                  {showCompleted && (
-                    <button
-                      onClick={e => {
-                        e.stopPropagation();
-                        revertTodo(todo.id);
-                      }}
-                      className="text-yellow-500 p-3 text-2xl"
-                      title="Revert to active"
-                    >
-                      ↺
-                    </button>
-                  )}
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      moveTodo(originalIndex, 'up');
+                    }}
+                    disabled={originalIndex === 0}
+                    className="text-gray-500 disabled:opacity-50 p-3 text-2xl"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      moveTodo(originalIndex, 'down');
+                    }}
+                    disabled={originalIndex === displayedTodos.length - 1} // Use displayedTodos.length here
+                    className="text-gray-500 disabled:opacity-50 p-3 text-2xl"
+                  >
+                    ↓
+                  </button>
                   <button
                     onClick={e => {
                       e.stopPropagation();
@@ -442,11 +564,7 @@ function TodosPage() {
               {expandedIds.includes(todo.id) && (
                 <div className="mt-2 w-full border-t pt-2">
                   <p>Date Created: {formatDate(todo.created_at)}</p>
-                  <p>
-                    Date Completed:{' '}
-                    {todo.completed_at ? formatDate(todo.completed_at) : 'N/A'}
-                  </p>
-
+                  {/* No Date Completed for current tasks */}
                   <div className="mt-2">
                     <label htmlFor={`details-${todo.id}`} className="block mb-1 font-medium">
                       Details:
@@ -474,8 +592,8 @@ function TodosPage() {
           );
         })}
 
-        {/* drag target at end */}
-        {!showCompleted && (
+        {/* drag target at end - only for non-completed */}
+        {!showCompleted && displayedTodos.length > 0 && (
           <li
             className={`h-6 ${
               dragOverIndex === todos.length && draggingIndex !== null
