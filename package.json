@@ -10,6 +10,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@supabase/supabase-js": "^2.27.0",
     "next": "13.5.1",
     "react": "18.2.0",
