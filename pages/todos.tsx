@@ -338,8 +338,11 @@ function TodosPage() {
           }}
           className="flex-1 border rounded p-2 mr-2"
         />
-        <button onClick={addTodo} className="bg-[#569866] text-white rounded px-4 py-3 text-lg">
-          Add
+        <button
+          onClick={addTodo}
+          className="bg-green-500 text-white font-medium text-base px-6 py-3 rounded-lg shadow-md hover:scale-105 hover:brightness-105 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 transform transition-all duration-200 ease-out"
+        >
+          <span className="font-bold text-lg">+</span> Add To Do
         </button>
       </div>
 
