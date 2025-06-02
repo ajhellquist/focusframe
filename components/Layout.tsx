@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { ArrowRightEndOnRectangleIcon } from '@heroicons/react/24/outline';
 import { supabase } from '../lib/supabaseClient';
 import logo from '../focusframe_logo_trimmed.png';
 
@@ -45,12 +46,22 @@ export default function Layout({ children }: LayoutProps) {
             </nav>
           </div>
           <div className="flex items-center">
-            <button
-              onClick={handleSignOut}
-              className="bg-red-500 text-white px-3 py-3 rounded mr-4"
-            >
-              Sign Out
-            </button>
+            <div className="relative group mr-4"> {/* Wrapper takes the margin */}
+              <button
+                onClick={handleSignOut}
+                aria-label="Sign Out"
+                className="group w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 active:scale-95 transition-all duration-150 ease-in-out"
+                // Removed mr-4 from button as it's now on the parent div
+              >
+                <ArrowRightEndOnRectangleIcon className="w-5 h-5" />
+              </button>
+              <span 
+                className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-700 text-white text-xs rounded shadow-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-150 delay-300 z-10 whitespace-nowrap"
+                // Added z-10 to ensure tooltip is above other elements if necessary
+              >
+                Sign Out
+              </span>
+            </div>
             {/* Mobile Menu Button */}
             <button
               onClick={toggleMobileMenu}
