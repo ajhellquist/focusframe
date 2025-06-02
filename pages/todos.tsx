@@ -65,6 +65,7 @@ function TodosPage() {
   const [detailsMap, setDetailsMap] = useState<Record<string, string>>({});
   const [recentlyCompleted, setRecentlyCompleted] = useState<string[]>([]);
   const [recentlyReverted, setRecentlyReverted] = useState<string[]>([]);
+  const [savingStatusMap, setSavingStatusMap] = useState<Record<string, 'idle' | 'saving' | 'saved' | 'error'>>({});
 
   // Add audio reference
   const completionSoundRef = React.useRef<HTMLAudioElement | null>(null);
@@ -291,6 +292,31 @@ function TodosPage() {
   // displayedTodos will now only refer to non-completed tasks for the current view
   const displayedTodos = todos.filter(t => !t.is_complete);
 
+  const saveDetails = async (todoId: string, details: string) => {
+    setSavingStatusMap(prev => ({ ...prev, [todoId]: 'saving' }));
+    try {
+      const { error } = await supabase
+        .from('todos')
+        .update({ detail: details })
+        .eq('id', todoId)
+        .select();
+
+      if (error) {
+        console.error('Error updating details:', error);
+        setSavingStatusMap(prev => ({ ...prev, [todoId]: 'error' }));
+      } else {
+        console.log('Details saved successfully for todo:', todoId);
+        setSavingStatusMap(prev => ({ ...prev, [todoId]: 'saved' }));
+        setTimeout(() => {
+          setSavingStatusMap(prev => ({ ...prev, [todoId]: 'idle' }));
+        }, 2000); // Revert to idle after 2 seconds
+      }
+    } catch (error) {
+      console.error('Exception while saving details:', error);
+      setSavingStatusMap(prev => ({ ...prev, [todoId]: 'error' }));
+    }
+  };
+
   if (!user) return null;
 
   return (
@@ -442,16 +468,22 @@ function TodosPage() {
                           onChange={e =>
                             setDetailsMap(prev => ({ ...prev, [todo.id]: e.target.value }))
                           }
-                          onBlur={e => {
-                            const details = e.target.value;
-                            supabase
-                              .from('todos')
-                              .update({ detail: details })
-                              .eq('id', todo.id);
-                          }}
                           className="w-full border rounded p-2"
                           rows={3}
                         />
+                        <button
+                          onClick={() => saveDetails(todo.id, detailsMap[todo.id] || '')}
+                          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-sm mt-1"
+                          disabled={savingStatusMap[todo.id] === 'saving'}
+                        >
+                          {savingStatusMap[todo.id] === 'saving'
+                            ? 'Saving...'
+                            : savingStatusMap[todo.id] === 'saved'
+                            ? 'Saved!'
+                            : savingStatusMap[todo.id] === 'error'
+                            ? 'Error - Retry?'
+                            : 'Save'}
+                        </button>
                       </div>
                     </div>
                   )}
@@ -580,16 +612,22 @@ function TodosPage() {
                       onChange={e =>
                         setDetailsMap(prev => ({ ...prev, [todo.id]: e.target.value }))
                       }
-                      onBlur={e => {
-                        const details = e.target.value;
-                        supabase
-                          .from('todos')
-                          .update({ detail: details })
-                          .eq('id', todo.id);
-                      }}
                       className="w-full border rounded p-2"
                       rows={3}
                     />
+                    <button
+                      onClick={() => saveDetails(todo.id, detailsMap[todo.id] || '')}
+                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-sm mt-1"
+                      disabled={savingStatusMap[todo.id] === 'saving'}
+                    >
+                      {savingStatusMap[todo.id] === 'saving'
+                        ? 'Saving...'
+                        : savingStatusMap[todo.id] === 'saved'
+                        ? 'Saved!'
+                        : savingStatusMap[todo.id] === 'error'
+                        ? 'Error - Retry?'
+                        : 'Save'}
+                    </button>
                   </div>
                 </div>
               )}
