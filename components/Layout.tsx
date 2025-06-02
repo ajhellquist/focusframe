@@ -56,7 +56,7 @@ export default function Layout({ children }: LayoutProps) {
                 <ArrowRightEndOnRectangleIcon className="w-5 h-5" />
               </button>
               <span 
-                className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-700 text-white text-xs rounded shadow-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-150 delay-300 z-10"
+                className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-700 text-white text-xs rounded shadow-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-150 delay-300 z-10 whitespace-nowrap"
                 // Added z-10 to ensure tooltip is above other elements if necessary
               >
                 Sign Out
