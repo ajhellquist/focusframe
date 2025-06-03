@@ -223,7 +223,7 @@ function TodosPage() {
       if (completionSoundRef.current) {
         completionSoundRef.current.play();
       }
-    }, 700);
+    }, 100);
   };
 
   const revertTodo = async (id: string) => {
@@ -324,7 +324,7 @@ function TodosPage() {
       <h1 className="text-2xl font-bold mb-4">Your To-Do List</h1>
 
       {/* add box */}
-      <div className="flex mb-4">
+      <div className="flex mb-4 gap-3">
         <input
           type="text"
           placeholder="Add new task"
@@ -336,11 +336,12 @@ function TodosPage() {
               addTodo();
             }
           }}
-          className="flex-1 border rounded p-2 mr-2"
+          className="flex-1 bg-white border border-gray-200 rounded-full px-6 py-3 text-base placeholder-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent hover:shadow-md transition-all duration-200 ease-out"
         />
         <button
           onClick={addTodo}
-          className="bg-green-500 text-white font-medium text-base px-6 py-3 rounded-lg shadow-md hover:scale-105 hover:brightness-105 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 transform transition-all duration-200 ease-out"
+          className="bg-green-500 text-white font-medium text-base px-6 py-3 shadow-md hover:scale-105 hover:brightness-105 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 transform transition-all duration-200 ease-out"
+          style={{ borderRadius: '40px' }}
         >
           <span className="font-bold text-lg">+</span> Add To Do
         </button>
@@ -350,17 +351,19 @@ function TodosPage() {
       <div className="flex mb-4 space-x-2">
         <button
           onClick={() => setShowCompleted(false)}
-          className={`px-4 py-3 rounded ${
-            !showCompleted ? 'bg-[#569866] text-white' : 'bg-gray-200 text-gray-700'
+          className={`font-medium text-base px-6 py-3 shadow-md hover:scale-105 hover:brightness-105 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 transform transition-all duration-200 ease-out ${
+            !showCompleted ? 'bg-[#569866] text-white focus:ring-green-400' : 'bg-gray-200 text-gray-700 focus:ring-gray-400'
           }`}
+          style={{ borderRadius: '40px' }}
         >
           Current
         </button>
         <button
           onClick={() => setShowCompleted(true)}
-          className={`px-4 py-3 rounded ${
-            showCompleted ? 'bg-[#569866] text-white' : 'bg-gray-200 text-gray-700'
+          className={`font-medium text-base px-6 py-3 shadow-md hover:scale-105 hover:brightness-105 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 transform transition-all duration-200 ease-out ${
+            showCompleted ? 'bg-[#569866] text-white focus:ring-green-400' : 'bg-gray-200 text-gray-700 focus:ring-gray-400'
           }`}
+          style={{ borderRadius: '40px' }}
         >
           Completed
         </button>
@@ -368,7 +371,7 @@ function TodosPage() {
 
       {/* Add audio element */}
       <audio ref={completionSoundRef} preload="auto">
-        <source src="/pingsound.mp3" type="audio/mp3" />
+        <source src="/hitmarker.wav" type="audio/wav" />
         Your browser does not support the audio element.
       </audio>
 
@@ -390,11 +393,15 @@ function TodosPage() {
                   key={todo.id}
                   // draggable is false when showCompleted is true
                   className={`
-                    bg-white rounded shadow
-                    transition-all duration-700 ease-out
+                    relative bg-white border border-gray-200 shadow-sm hover:shadow-md
+                    overflow-hidden
                     ${isReverting ? 'opacity-0 transform -translate-y-4 my-0 h-0 overflow-hidden' : 'opacity-100'}
-                    ${expandedIds.includes(todo.id) ? 'p-4 flex flex-col space-y-4' : 'flex items-center p-2'}
+                    ${expandedIds.includes(todo.id) ? 'px-6 py-4 flex flex-col space-y-4' : 'flex items-center px-6 py-3'}
                   `}
+                  style={{
+                    borderRadius: '40px',
+                    transition: 'all 800ms cubic-bezier(0.4, 0, 0.2, 1)'
+                  }}
                 >
                   {/* row content */}
                   <div
@@ -455,7 +462,7 @@ function TodosPage() {
 
                   {/* details / expansion panel */}
                   {expandedIds.includes(todo.id) && (
-                    <div className="mt-2 w-full border-t pt-2">
+                    <div className="mt-2 w-full border-t pt-2 animate-in fade-in duration-200 delay-150">
                       <p>Date Created: {formatDate(todo.created_at)}</p>
                       <p>
                         Date Completed:{' '}
@@ -471,12 +478,12 @@ function TodosPage() {
                           onChange={e =>
                             setDetailsMap(prev => ({ ...prev, [todo.id]: e.target.value }))
                           }
-                          className="w-full border rounded p-2"
+                          className="w-full border border-gray-200 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200"
                           rows={3}
                         />
                         <button
                           onClick={() => saveDetails(todo.id, detailsMap[todo.id] || '')}
-                          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-sm mt-1"
+                          className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg text-sm mt-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
                           disabled={savingStatusMap[todo.id] === 'saving'}
                         >
                           {savingStatusMap[todo.id] === 'saving'
@@ -518,12 +525,16 @@ function TodosPage() {
               onDrop={handleDrop}
               onDragEnd={handleDragEnd}
               className={`
-                bg-white rounded shadow
-                transition-all duration-700 ease-out
+                relative bg-white border border-gray-200 shadow-sm hover:shadow-md
+                overflow-hidden
                 ${isCompleting ? 'opacity-0 transform -translate-y-4 my-0 h-0 overflow-hidden' : 'opacity-100'}
-                ${expandedIds.includes(todo.id) ? 'p-4 flex flex-col space-y-4' : 'flex items-center p-2'}
+                ${expandedIds.includes(todo.id) ? 'px-6 py-4 flex flex-col space-y-4' : 'flex items-center px-6 py-3'}
                 ${dragOverIndex === originalIndex && draggingIndex !== originalIndex ? 'border-2 border-dashed border-gray-400' : ''}
               `}
+              style={{
+                borderRadius: '40px',
+                transition: 'all 800ms cubic-bezier(0.4, 0, 0.2, 1)'
+              }}
             >
               {/* row content */}
               <div
@@ -602,7 +613,7 @@ function TodosPage() {
 
               {/* details / expansion panel */}
               {expandedIds.includes(todo.id) && (
-                <div className="mt-2 w-full border-t pt-2">
+                <div className="mt-2 w-full border-t pt-2 animate-in fade-in duration-200 delay-150">
                   <p>Date Created: {formatDate(todo.created_at)}</p>
                   {/* No Date Completed for current tasks */}
                   <div className="mt-2">
@@ -615,12 +626,12 @@ function TodosPage() {
                       onChange={e =>
                         setDetailsMap(prev => ({ ...prev, [todo.id]: e.target.value }))
                       }
-                      className="w-full border rounded p-2"
+                      className="w-full border border-gray-200 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200"
                       rows={3}
                     />
                     <button
                       onClick={() => saveDetails(todo.id, detailsMap[todo.id] || '')}
-                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-sm mt-1"
+                      className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg text-sm mt-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
                       disabled={savingStatusMap[todo.id] === 'saving'}
                     >
                       {savingStatusMap[todo.id] === 'saving'
