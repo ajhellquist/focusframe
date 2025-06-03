@@ -336,14 +336,15 @@ function TodosPage() {
               addTodo();
             }
           }}
-          className="flex-1 bg-white border border-gray-200 rounded-full px-6 py-3 text-base placeholder-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent hover:shadow-md transition-all duration-200 ease-out"
+          className="flex-1 bg-white border border-gray-200 rounded-full px-6 py-3 text-base placeholder-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent hover:shadow-md transition-all duration-200 ease-out h-[52px]"
         />
         <button
           onClick={addTodo}
-          className="bg-green-500 text-white font-medium text-base px-6 py-3 shadow-md hover:scale-105 hover:brightness-105 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 transform transition-all duration-200 ease-out"
+          className="bg-green-500 text-white font-medium text-base px-6 py-3 shadow-md hover:scale-105 hover:brightness-105 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 transform transition-all duration-200 ease-out h-[52px] flex items-center justify-center"
           style={{ borderRadius: '40px' }}
         >
-          <span className="font-bold text-lg">+</span> Add To Do
+          <span className="font-bold text-lg">+</span>
+          <span className="hidden sm:inline ml-2">Add To Do</span>
         </button>
       </div>
 
