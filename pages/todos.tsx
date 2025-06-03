@@ -436,7 +436,7 @@ function TodosPage() {
                     </button>
 
                     {/* action buttons */}
-                    <div className="flex items-center space-x-2 ml-auto">
+                    <div className="flex items-center space-x-1 ml-auto shrink-0">
                       <button
                         onClick={e => {
                           e.stopPropagation();
@@ -447,17 +447,19 @@ function TodosPage() {
                       >
                         ↺
                       </button>
-                      <ContextMenu
-                        menuButtonAriaLabel={`Options for to-do: ${todo.content}`}
-                        items={[{
-                          label: "Delete",
-                          action: () => {
-                            if (confirm('Delete this to-do item?')) {
-                              deleteTodo(todo.id);
+                      <div className="flex items-center">
+                        <ContextMenu
+                          menuButtonAriaLabel={`Options for to-do: ${todo.content}`}
+                          items={[{
+                            label: "Delete",
+                            action: () => {
+                              if (confirm('Delete this to-do item?')) {
+                                deleteTodo(todo.id);
+                              }
                             }
-                          }
-                        }]}
-                      />
+                          }]}
+                        />
+                      </div>
                     </div>
                   </div>
 
@@ -577,38 +579,43 @@ function TodosPage() {
                 </button>
 
                 {/* action buttons */}
-                <div className="flex items-center space-x-2 ml-auto">
-                  <button
-                    onClick={e => {
-                      e.stopPropagation();
-                      moveTodo(originalIndex, 'up');
-                    }}
-                    disabled={originalIndex === 0}
-                    className="text-gray-500 disabled:opacity-50 p-3 text-2xl"
-                  >
-                    ↑
-                  </button>
-                  <button
-                    onClick={e => {
-                      e.stopPropagation();
-                      moveTodo(originalIndex, 'down');
-                    }}
-                    disabled={originalIndex === displayedTodos.length - 1} // Use displayedTodos.length here
-                    className="text-gray-500 disabled:opacity-50 p-3 text-2xl"
-                  >
-                    ↓
-                  </button>
-                  <ContextMenu
-                    menuButtonAriaLabel={`Options for to-do: ${todo.content}`}
-                    items={[{
-                      label: "Delete",
-                      action: () => {
-                        if (confirm('Delete this to-do item?')) {
-                          deleteTodo(todo.id);
+                <div className="flex items-center space-x-1 ml-auto shrink-0">
+                  {/* Hide up/down arrows on mobile, show on larger screens */}
+                  <div className="hidden sm:flex items-center space-x-1">
+                    <button
+                      onClick={e => {
+                        e.stopPropagation();
+                        moveTodo(originalIndex, 'up');
+                      }}
+                      disabled={originalIndex === 0}
+                      className="text-gray-500 disabled:opacity-50 p-3 text-2xl"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      onClick={e => {
+                        e.stopPropagation();
+                        moveTodo(originalIndex, 'down');
+                      }}
+                      disabled={originalIndex === displayedTodos.length - 1}
+                      className="text-gray-500 disabled:opacity-50 p-3 text-2xl"
+                    >
+                      ↓
+                    </button>
+                  </div>
+                  <div className="flex items-center">
+                    <ContextMenu
+                      menuButtonAriaLabel={`Options for to-do: ${todo.content}`}
+                      items={[{
+                        label: "Delete",
+                        action: () => {
+                          if (confirm('Delete this to-do item?')) {
+                            deleteTodo(todo.id);
+                          }
                         }
-                      }
-                    }]}
-                  />
+                      }]}
+                    />
+                  </div>
                 </div>
               </div>
 
