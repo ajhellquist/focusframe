@@ -223,7 +223,7 @@ function TodosPage() {
       if (completionSoundRef.current) {
         completionSoundRef.current.play();
       }
-    }, 700);
+    }, 100);
   };
 
   const revertTodo = async (id: string) => {
@@ -371,7 +371,7 @@ function TodosPage() {
 
       {/* Add audio element */}
       <audio ref={completionSoundRef} preload="auto">
-        <source src="/pingsound.mp3" type="audio/mp3" />
+        <source src="/hitmarker.wav" type="audio/wav" />
         Your browser does not support the audio element.
       </audio>
 
