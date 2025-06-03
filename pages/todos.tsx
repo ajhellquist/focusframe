@@ -432,7 +432,13 @@ function TodosPage() {
                       }}
                       className="p-3 text-[#569866] text-2xl"
                     >
-                      {expandedIds.includes(todo.id) ? '▼' : '▶'}
+                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="#569866" strokeWidth="2">
+                        {expandedIds.includes(todo.id) ? (
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                        ) : (
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        )}
+                      </svg>
                     </button>
 
                     {/* action buttons */}
@@ -575,7 +581,13 @@ function TodosPage() {
                   }}
                   className="p-3 text-[#569866] text-2xl"
                 >
-                  {expandedIds.includes(todo.id) ? '▼' : '▶'}
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="#569866" strokeWidth="2">
+                    {expandedIds.includes(todo.id) ? (
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    ) : (
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    )}
+                  </svg>
                 </button>
 
                 {/* action buttons */}
