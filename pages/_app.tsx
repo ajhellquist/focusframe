@@ -4,6 +4,9 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import favicon from "../focusframelogosimple.png";
 import type { AppProps } from "next/app";
+import { Inter } from "next/font/google";
+
+const inter = Inter({ subsets: ["latin"] });
 import { AuthProvider, useAuth } from "../components/AuthProvider";
 import Layout from "../components/Layout";
 
@@ -20,13 +23,19 @@ function InnerApp({ Component, pageProps }: AppProps) {
       return null;
     }
     return (
-      <Layout>
-        <Component {...pageProps} />
-      </Layout>
+      <div className={inter.className}>
+        <Layout>
+          <Component {...pageProps} />
+        </Layout>
+      </div>
     );
   }
 
-  return <Component {...pageProps} />;
+  return (
+    <div className={inter.className}>
+      <Component {...pageProps} />
+    </div>
+  );
 }
 
 export default function MyApp(props: AppProps) {
@@ -37,7 +46,9 @@ export default function MyApp(props: AppProps) {
         <link rel="icon" href={favicon.src} />
       </Head>
       <AuthProvider>
-        <InnerApp {...props} />
+        <div className={inter.className}>
+          <InnerApp {...props} />
+        </div>
       </AuthProvider>
     </>
   );
