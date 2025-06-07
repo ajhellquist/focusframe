@@ -50,6 +50,9 @@ export default function HabitsPage() {
   const [recentlyCompleted, setRecentlyCompleted] = useState<string[]>([]);
   const [recentlyUncompleted, setRecentlyUncompleted] = useState<string[]>([]);
 
+  // Add audio reference
+  const completionSoundRef = React.useRef<HTMLAudioElement | null>(null);
+
   const handleDelete = (id: string) => {
     if (confirm('Are you sure you want to delete this habit?')) {
       setHabits((prev) => prev.filter((h) => h.id !== id));
@@ -221,6 +224,11 @@ export default function HabitsPage() {
         )
       );
       
+      // Play completion sound only when marking complete (not when unchecking)
+      if (!isDone && completionSoundRef.current) {
+        completionSoundRef.current.play();
+      }
+      
       // Remove from animation states after a delay
       setTimeout(() => {
         if (!isDone) {
@@ -259,11 +267,20 @@ export default function HabitsPage() {
           </div>
           <button
             onClick={addHabit}
-        className="bg-green-500 text-white font-medium text-base px-6 py-3 rounded-lg shadow-md hover:scale-105 hover:brightness-105 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 transform transition-all duration-200 ease-out"
+            className="bg-green-500 text-white font-medium text-base px-6 py-3 shadow-md hover:scale-105 hover:brightness-105 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 transform transition-all duration-200 ease-out h-[52px] flex items-center justify-center"
+            style={{ borderRadius: '40px' }}
           >
-        <span className="font-bold text-lg">+</span> Add Habit
+            <span className="font-bold text-lg">+</span>
+            <span className="hidden sm:inline ml-2">Add Habit</span>
           </button>
         </div>
+        
+        {/* Add audio element */}
+        <audio ref={completionSoundRef} preload="auto">
+          <source src="/hitmarker.wav" type="audio/wav" />
+          Your browser does not support the audio element.
+        </audio>
+        
         <div className="space-y-4">
           {habits
             .filter((habit) => habit.createdDate <= dateStr)
@@ -276,9 +293,13 @@ export default function HabitsPage() {
                 <div
                   key={habit.id}
                   className={`
-                    flex items-center justify-between bg-white p-4 rounded shadow
-                    transition-all duration-500 ease-out
+                    relative bg-white border border-gray-200 shadow-sm hover:shadow-md
+                    flex items-center justify-between px-6 py-3
                   `}
+                  style={{
+                    borderRadius: '40px',
+                    transition: 'all 800ms cubic-bezier(0.4, 0, 0.2, 1)'
+                  }}
                 >
                   {/* Left: completion box and title */}
                   <div className="flex items-center space-x-2">
