@@ -49,40 +49,61 @@ export default function HabitsPage() {
   // Add these states to track recently toggled habits
   const [recentlyCompleted, setRecentlyCompleted] = useState<string[]>([]);
   const [recentlyUncompleted, setRecentlyUncompleted] = useState<string[]>([]);
+  
+  // Add states for inline expansion
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [inputValue, setInputValue] = useState('');
+  
+  // Add states for habit editing modes
+  const [deletingHabitId, setDeletingHabitId] = useState<string | null>(null);
+  const [editingDateHabitId, setEditingDateHabitId] = useState<string | null>(null);
+  const [editDateValue, setEditDateValue] = useState('');
 
   // Add audio reference
   const completionSoundRef = React.useRef<HTMLAudioElement | null>(null);
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this habit?')) {
-      setHabits((prev) => prev.filter((h) => h.id !== id));
-    }
+  const handleDeleteClick = (id: string) => {
+    setDeletingHabitId(id);
   };
-  /**
-   * Edit the creation date of a habit (backdate or change).
-   */
-  const handleEdit = async (id: string) => {
-    const habit = habits.find((h) => h.id === id);
-    if (!habit) return;
-    const newDate = prompt(
-      `Enter new creation date for "${habit.title}" (YYYY-MM-DD):`,
-      habit.createdDate
-    );
-    if (!newDate) return;
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate)) {
-      alert('Invalid date format. Please use YYYY-MM-DD.');
+
+  const handleDeleteConfirm = async (id: string) => {
+    const { error } = await supabase
+      .from('habits')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Error deleting habit:', error.message);
       return;
     }
-    const dateObj = parseLocalDate(newDate);
+    
+    setHabits((prev) => prev.filter((h) => h.id !== id));
+    setDeletingHabitId(null);
+  };
+
+  const handleDeleteCancel = () => {
+    setDeletingHabitId(null);
+  };
+  const handleEditDateClick = (id: string) => {
+    const habit = habits.find((h) => h.id === id);
+    if (!habit) return;
+    setEditingDateHabitId(id);
+    setEditDateValue(habit.createdDate);
+  };
+
+  const handleEditDateSubmit = async (id: string) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(editDateValue)) {
+      return;
+    }
+    const dateObj = parseLocalDate(editDateValue);
     if (isNaN(dateObj.getTime())) {
-      alert('Invalid date. Please enter a valid date.');
       return;
     }
     const todayStr = getLocalDateString(today);
-    if (newDate > todayStr) {
-      alert('Creation date cannot be in the future.');
+    if (editDateValue > todayStr) {
       return;
     }
+    
     // Update in Supabase
     const isoTimestamp = dateObj.toISOString();
     const { data: updated, error } = await supabase
@@ -103,6 +124,21 @@ export default function HabitsPage() {
           : h
       )
     );
+    setEditingDateHabitId(null);
+    setEditDateValue('');
+  };
+
+  const handleEditDateCancel = () => {
+    setEditingDateHabitId(null);
+    setEditDateValue('');
+  };
+
+  const handleEditDateKeyDown = (e: React.KeyboardEvent, id: string) => {
+    if (e.key === 'Enter') {
+      handleEditDateSubmit(id);
+    } else if (e.key === 'Escape') {
+      handleEditDateCancel();
+    }
   };
 
   const formatDate = (date: Date) =>
@@ -148,12 +184,11 @@ export default function HabitsPage() {
   }, [user]);
 
   // Add a new habit via Supabase
-  const addHabit = async () => {
-    const title = prompt('Enter new habit name:');
-    if (!title || !user) return;
+  const addHabit = async (title: string) => {
+    if (!title.trim() || !user) return;
     const { data, error } = await supabase
       .from('habits')
-      .insert([{ title, user_id: user.id }])
+      .insert([{ title: title.trim(), user_id: user.id }])
       .select('id, title, created_at')
       .single();
     if (error) {
@@ -169,6 +204,24 @@ export default function HabitsPage() {
       completedDates: [],
     };
     setHabits((prev) => [...prev, newHabit]);
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (inputValue.trim()) {
+      await addHabit(inputValue);
+      setInputValue('');
+      setIsExpanded(false);
+    }
+  };
+
+  // Handle escape key to cancel
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setInputValue('');
+      setIsExpanded(false);
+    }
   };
   // Toggle completion for a habit on the current date
   const toggleHabit = async (id: string) => {
@@ -265,14 +318,56 @@ export default function HabitsPage() {
               &gt;
             </button>
           </div>
-          <button
-            onClick={addHabit}
-            className="bg-green-500 text-white font-medium text-base px-6 py-3 shadow-md hover:scale-105 hover:brightness-105 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 transform transition-all duration-200 ease-out h-[52px] flex items-center justify-center"
-            style={{ borderRadius: '40px' }}
-          >
-            <span className="font-bold text-lg">+</span>
-            <span className="hidden sm:inline ml-2">Add Habit</span>
-          </button>
+          <div className="relative">
+            {!isExpanded ? (
+              <button
+                onClick={() => setIsExpanded(true)}
+                className="bg-green-500 text-white font-medium text-base px-6 py-3 shadow-md hover:scale-105 hover:brightness-105 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 transform transition-all duration-300 ease-out h-[52px] flex items-center justify-center"
+                style={{ borderRadius: '40px' }}
+              >
+                <span className="font-bold text-lg">+</span>
+                <span className="hidden sm:inline ml-2">Add Habit</span>
+              </button>
+            ) : (
+              <form onSubmit={handleSubmit} className="flex items-center">
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Enter habit name..."
+                    className="h-[52px] px-6 py-3 text-base border-2 border-green-500 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-600 transition-all duration-300 ease-out shadow-md"
+                    style={{ 
+                      borderRadius: '40px',
+                      minWidth: '280px',
+                      background: 'white'
+                    }}
+                    autoFocus
+                  />
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
+                    <button
+                      type="submit"
+                      disabled={!inputValue.trim()}
+                      className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                    >
+                      <span className="text-sm font-bold">✓</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInputValue('');
+                        setIsExpanded(false);
+                      }}
+                      className="w-8 h-8 bg-gray-400 text-white rounded-full flex items-center justify-center hover:bg-gray-500 transition-all duration-200"
+                    >
+                      <span className="text-sm">✕</span>
+                    </button>
+                  </div>
+                </div>
+              </form>
+            )}
+          </div>
         </div>
         
         {/* Add audio element */}
@@ -288,6 +383,77 @@ export default function HabitsPage() {
               const done = habit.completedDates.includes(dateStr);
               const isCompleting = recentlyCompleted.includes(habit.id);
               const isUncompleting = recentlyUncompleted.includes(habit.id);
+              const isDeleting = deletingHabitId === habit.id;
+              const isEditingDate = editingDateHabitId === habit.id;
+              
+              if (isEditingDate) {
+                return (
+                  <div
+                    key={habit.id}
+                    className="relative bg-white border-2 border-blue-400 shadow-md px-6 py-3"
+                    style={{ borderRadius: '40px' }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <span className="text-lg font-medium">Edit start date for "{habit.title}"</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="date"
+                          value={editDateValue}
+                          onChange={(e) => setEditDateValue(e.target.value)}
+                          onKeyDown={(e) => handleEditDateKeyDown(e, habit.id)}
+                          className="px-3 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                          max={getLocalDateString(today)}
+                          autoFocus
+                        />
+                        <button
+                          onClick={() => handleEditDateSubmit(habit.id)}
+                          className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition-all duration-200"
+                        >
+                          <span className="text-sm font-bold">✓</span>
+                        </button>
+                        <button
+                          onClick={handleEditDateCancel}
+                          className="w-8 h-8 bg-gray-400 text-white rounded-full flex items-center justify-center hover:bg-gray-500 transition-all duration-200"
+                        >
+                          <span className="text-sm">✕</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              if (isDeleting) {
+                return (
+                  <div
+                    key={habit.id}
+                    className="relative bg-red-50 border-2 border-red-300 shadow-md px-6 py-3"
+                    style={{ borderRadius: '40px' }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <span className="text-lg text-red-700">Delete "{habit.title}"?</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => handleDeleteConfirm(habit.id)}
+                          className="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200 font-medium"
+                        >
+                          Delete
+                        </button>
+                        <button
+                          onClick={handleDeleteCancel}
+                          className="px-4 py-2 bg-gray-400 text-white rounded-full hover:bg-gray-500 transition-all duration-200 font-medium"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
               
               return (
                 <div
@@ -364,8 +530,8 @@ export default function HabitsPage() {
                     <ContextMenu
                       menuButtonAriaLabel={`Options for ${habit.title}`}
                       items={[
-                        { label: "Change start date", action: () => handleEdit(habit.id) },
-                        { label: "Delete", action: () => handleDelete(habit.id) }
+                        { label: "Change start date", action: () => handleEditDateClick(habit.id) },
+                        { label: "Delete", action: () => handleDeleteClick(habit.id) }
                       ]}
                     />
                   </div>
