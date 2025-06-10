@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { ArrowRightEndOnRectangleIcon } from '@heroicons/react/24/outline';
 import { supabase } from '../lib/supabaseClient';
-import logo from '../focusframe_logo_trimmed.png';
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -12,6 +11,7 @@ type LayoutProps = {
 export default function Layout({ children }: LayoutProps) {
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [lastActiveRoute, setLastActiveRoute] = useState<string>(router.pathname);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -22,25 +22,74 @@ export default function Layout({ children }: LayoutProps) {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
+  // Update the last active route when navigation completes
+  useEffect(() => {
+    const handleRouteChangeComplete = (url: string) => {
+      // Extract pathname from the URL
+      const pathname = url.split('?')[0];
+      setLastActiveRoute(pathname);
+    };
+
+    router.events.on('routeChangeComplete', handleRouteChangeComplete);
+
+    return () => {
+      router.events.off('routeChangeComplete', handleRouteChangeComplete);
+    };
+  }, [router]);
+
+  // Helper function to check if a route is active
+  const isActiveRoute = (path: string) => {
+    // Use lastActiveRoute instead of router.pathname to prevent flicker
+    return lastActiveRoute === path;
+  };
+
+  // Helper function to get navigation link classes
+  const getNavLinkClasses = (path: string) => {
+    const isActive = isActiveRoute(path);
+    return isActive
+      ? "bg-green-500 text-white font-medium px-6 py-3 shadow-md hover:scale-105 hover:brightness-105 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 transform transition-all duration-200 ease-out"
+      : "text-gray-700 hover:text-blue-500 p-3 transition-colors duration-200";
+  };
+
+  // Helper function to get mobile navigation link classes
+  const getMobileNavLinkClasses = (path: string) => {
+    const isActive = isActiveRoute(path);
+    return isActive
+      ? "bg-green-500 text-white font-medium mx-4 my-1 px-6 py-3 shadow-md rounded-full block transition-all duration-200"
+      : "text-gray-700 hover:text-blue-500 py-3 px-4 block transition-colors duration-200";
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <header className="bg-white shadow relative"> {/* Added relative positioning */}
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center">
             <img
-              src={logo.src}
+              src="/focusframe_logo_trimmed.png"
               alt="FocusFrame Logo"
               className="h-8 w-auto mr-4"
             />
             {/* Desktop Navigation */}
             <nav className="hidden md:flex space-x-4">
-              <Link href="/dashboard" className="text-gray-700 hover:text-blue-500 p-3">
+              <Link 
+                href="/dashboard" 
+                className={getNavLinkClasses('/dashboard')}
+                style={isActiveRoute('/dashboard') ? { borderRadius: '40px' } : {}}
+              >
                 Dashboard
               </Link>
-              <Link href="/todos" className="text-gray-700 hover:text-blue-500 p-3">
+              <Link 
+                href="/todos" 
+                className={getNavLinkClasses('/todos')}
+                style={isActiveRoute('/todos') ? { borderRadius: '40px' } : {}}
+              >
                 To‑Dos
               </Link>
-              <Link href="/habits" className="text-gray-700 hover:text-blue-500 p-3">
+              <Link 
+                href="/habits" 
+                className={getNavLinkClasses('/habits')}
+                style={isActiveRoute('/habits') ? { borderRadius: '40px' } : {}}
+              >
                 Habits
               </Link>
             </nav>
@@ -82,13 +131,22 @@ export default function Layout({ children }: LayoutProps) {
           // Added absolute positioning, width, border, and z-index for overlay
           <div className="md:hidden bg-white shadow-lg absolute w-full left-0 border-t border-gray-200 z-10">
             <nav className="flex flex-col py-2">
-              <Link href="/dashboard" className="text-gray-700 hover:text-blue-500 py-3 px-4 block">
+              <Link 
+                href="/dashboard" 
+                className={getMobileNavLinkClasses('/dashboard')}
+              >
                 Dashboard
               </Link>
-              <Link href="/todos" className="text-gray-700 hover:text-blue-500 py-3 px-4 block">
+              <Link 
+                href="/todos" 
+                className={getMobileNavLinkClasses('/todos')}
+              >
                 To‑Dos
               </Link>
-              <Link href="/habits" className="text-gray-700 hover:text-blue-500 py-3 px-4 block">
+              <Link 
+                href="/habits" 
+                className={getMobileNavLinkClasses('/habits')}
+              >
                 Habits
               </Link>
             </nav>
