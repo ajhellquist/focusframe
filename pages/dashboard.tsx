@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
 /**
@@ -40,6 +40,8 @@ function Dashboard() {
   // Dashboard state: habits and top todos
   const [habits, setHabits] = useState<Habit[]>([]);
   const [todos, setTodos] = useState<Todo[]>([]);
+  const [hoveredDay, setHoveredDay] = useState<{date: string; completed: boolean; dayOfWeek: string; x: number; y: number} | null>(null);
+  const [allCardsFlipped, setAllCardsFlipped] = useState(false);
 
   useEffect(() => {
     const getSession = async () => {
@@ -138,8 +140,7 @@ function Dashboard() {
     return { ...h, totalDays, completedCount, completionRate, streak, percentChange };
   });
   // Habit card component for rendering each habit with donut chart
-  const HabitCard = ({ title, streak, completionRate, percentChange, completedDates }: { title: string; streak: number; completionRate: number; percentChange: number; completedDates: string[]; }) => {
-    const [isFlipped, setIsFlipped] = useState(false);
+  const HabitCard = ({ title, streak, completionRate, percentChange, completedDates, setHoveredDay, hoveredDay, isFlipped }: { title: string; streak: number; completionRate: number; percentChange: number; completedDates: string[]; setHoveredDay: (day: {date: string; completed: boolean; dayOfWeek: string; x: number; y: number} | null) => void; hoveredDay: {date: string; completed: boolean; dayOfWeek: string; x: number; y: number} | null; isFlipped: boolean; }) => {
     
     // Generate 12 weeks of data for GitHub-style calendar organized by weeks
     const generateCalendarData = () => {
@@ -203,16 +204,18 @@ function Dashboard() {
     return (
       <section 
         data-card-type="habit" 
-        className="bg-white p-4 shadow-sm hover:shadow-md border-2 border-gray-200 h-[290px] w-[350px] hover:scale-105 transition-all duration-300 cursor-pointer relative preserve-3d"
+        className="bg-white p-4 shadow-sm hover:shadow-md border-2 border-gray-200 h-[290px] w-[350px] transition-shadow duration-300 relative preserve-3d"
         style={{borderRadius: '24px', perspective: '1000px'}}
-        onClick={() => setIsFlipped(!isFlipped)}
       >
         <div 
           className={`absolute inset-0 w-full h-full transition-transform duration-700 preserve-3d ${isFlipped ? 'rotate-y-180' : ''}`}
           style={{transformStyle: 'preserve-3d'}}
         >
           {/* Front side - Donut Chart */}
-          <div className="absolute inset-0 w-full h-full p-4 backface-hidden" style={{backfaceVisibility: 'hidden', borderRadius: '24px'}}>
+          <div 
+            className="absolute inset-0 w-full h-full p-4 backface-hidden" 
+            style={{backfaceVisibility: 'hidden', borderRadius: '24px'}}
+          >
             <h2 className="text-lg font-semibold mb-2">{title}</h2>
             <p className="text-sm text-gray-600 mb-4">Current Streak: {streak} days</p>
             <div className="flex justify-center">
@@ -290,10 +293,11 @@ function Dashboard() {
           <div 
             className="absolute inset-0 w-full h-full p-4 backface-hidden rotate-y-180" 
             style={{backfaceVisibility: 'hidden', transform: 'rotateY(180deg)', borderRadius: '24px'}}
+            onMouseLeave={() => setHoveredDay(null)}
           >
             <h2 className="text-lg font-semibold mb-2">{title}</h2>
             <p className="text-xs text-gray-600 mb-3">12 Week History</p>
-            <div className="flex justify-center px-2 py-1">
+            <div className="flex justify-center px-2 py-1" onMouseLeave={() => setHoveredDay(null)}>
               {/* Day of week labels */}
               <div className="flex flex-col mr-2" style={{gap: `${dayGap}px`}}>
                 {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((dayLabel, index) => (
@@ -316,18 +320,43 @@ function Dashboard() {
                     {week.map((day, dayIndex) => (
                       <div
                         key={`${weekIndex}-${dayIndex}`}
-                        className={`rounded-sm ${
+                        className={`rounded-sm cursor-pointer transition-opacity ${
                           !day.inRange 
                             ? 'bg-transparent' 
                             : day.completed 
-                              ? 'bg-green-500' 
-                              : 'bg-gray-200'
+                              ? 'bg-green-500 hover:bg-green-600' 
+                              : 'bg-gray-200 hover:bg-gray-300'
                         }`}
                         style={{
                           width: `${squareSize}px`,
                           height: `${squareSize}px`
                         }}
-                        title={day.inRange ? `${day.dayOfWeek}, ${day.date}: ${day.completed ? 'Completed' : 'Not completed'}` : ''}
+                        onMouseEnter={(e) => {
+                          e.stopPropagation();
+                          if (day.inRange) {
+                            setHoveredDay({
+                              date: day.date,
+                              completed: day.completed,
+                              dayOfWeek: day.dayOfWeek,
+                              x: e.clientX,
+                              y: e.clientY
+                            });
+                          }
+                        }}
+                        onMouseMove={(e) => {
+                          e.stopPropagation();
+                          if (hoveredDay && day.inRange) {
+                            setHoveredDay({
+                              ...hoveredDay,
+                              x: e.clientX,
+                              y: e.clientY
+                            });
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          e.stopPropagation();
+                          setHoveredDay(null);
+                        }}
                       />
                     ))}
                   </div>
@@ -347,11 +376,30 @@ function Dashboard() {
       </Head>
       <main className="min-h-screen p-8 bg-gray-50">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold">Welcome, {user.email}</h1>
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold">Welcome, {user.email}</h1>
+            
+            {/* Toggle switch for flipping all cards */}
+            <div className="flex items-center space-x-3">
+              <span className="text-sm text-gray-600">Charts</span>
+              <button
+                onClick={() => setAllCardsFlipped(!allCardsFlipped)}
+                className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                aria-label="Toggle between charts and calendars"
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    allCardsFlipped ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+              <span className="text-sm text-gray-600">Calendars</span>
+            </div>
+          </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {/* Top 5 To-Dos card */}
-          <section data-card-type="todo" className="bg-white p-4 shadow-sm hover:shadow-md border-2 border-gray-200 h-[290px] w-[350px] hover:scale-105 transition-all duration-300" style={{borderRadius: '24px'}}>
+          <section data-card-type="todo" className="bg-white p-4 shadow-sm hover:shadow-md border-2 border-gray-200 h-[290px] w-[350px] transition-shadow duration-300" style={{borderRadius: '24px'}}>
             <h2 className="text-lg font-semibold mb-2">Top 5 To-Dos</h2>
             <ul className="space-y-2">
               {todos.length > 0 ? (
@@ -380,9 +428,28 @@ function Dashboard() {
               completionRate={hm.completionRate}
               percentChange={hm.percentChange}
               completedDates={hm.completedDates}
+              setHoveredDay={setHoveredDay}
+              hoveredDay={hoveredDay}
+              isFlipped={allCardsFlipped}
             />
           ))}
         </div>
+        
+        {/* Global Tooltip - rendered outside all cards */}
+        {hoveredDay && (
+          <div
+            className="fixed z-[10000] bg-gray-900 text-white text-xs rounded px-2 py-1 pointer-events-none whitespace-nowrap shadow-lg"
+            style={{
+              left: `${hoveredDay.x + 15}px`,
+              top: `${hoveredDay.y - 40}px`,
+            }}
+          >
+            <div className="font-medium">{hoveredDay.dayOfWeek}, {hoveredDay.date}</div>
+            <div className={hoveredDay.completed ? 'text-green-300' : 'text-gray-300'}>
+              {hoveredDay.completed ? '✓ Completed' : '○ Not completed'}
+            </div>
+          </div>
+        )}
       </main>
     </>
   );
