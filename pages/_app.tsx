@@ -2,7 +2,6 @@ import "../styles/globals.css";
 import React from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
-import favicon from "../focusframelogosimple.png";
 import type { AppProps } from "next/app";
 import { Inter } from "next/font/google";
 
@@ -43,7 +42,7 @@ export default function MyApp(props: AppProps) {
     <>
       <Head>
         <title>FocusFrame</title>
-        <link rel="icon" href={favicon.src} />
+        <link rel="icon" href="/focusframelogosimple.png" />
       </Head>
       <AuthProvider>
         <div className={inter.className}>
