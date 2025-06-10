@@ -147,15 +147,15 @@ function Dashboard() {
       const weeks = [];
       const today = new Date();
       
-      // Start from 12 weeks ago (84 days)
-      const startDate = new Date(today);
-      startDate.setDate(today.getDate() - 83); // 83 days ago + today = 84 days total
+      // Find the Sunday of the current week
+      const currentSunday = new Date(today);
+      currentSunday.setDate(today.getDate() - today.getDay());
       
-      // Find the Sunday before our start date to align weeks properly
-      const startSunday = new Date(startDate);
-      startSunday.setDate(startDate.getDate() - startDate.getDay());
+      // Start from 11 weeks before the current week's Sunday
+      const startSunday = new Date(currentSunday);
+      startSunday.setDate(currentSunday.getDate() - (11 * 7));
       
-      // Create 12 weeks
+      // Create 12 weeks (11 past weeks + current week)
       for (let week = 0; week < 12; week++) {
         const weekDays = [];
         for (let day = 0; day < 7; day++) {
@@ -163,7 +163,7 @@ function Dashboard() {
           currentDate.setDate(startSunday.getDate() + (week * 7) + day);
           const dateStr = getLocalDateString(currentDate);
           const isCompleted = completedDates.includes(dateStr);
-          const isInRange = currentDate >= startDate && currentDate <= today;
+          const isInRange = currentDate <= today;
           const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
           const dayOfWeekName = dayNames[currentDate.getDay()];
           
@@ -376,25 +376,21 @@ function Dashboard() {
       </Head>
       <main className="min-h-screen p-8 bg-gray-50">
         <div className="mb-8">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">Welcome, {user.email}</h1>
-            
-            {/* Toggle switch for flipping all cards */}
-            <div className="flex items-center space-x-3">
-              <span className="text-sm text-gray-600">Charts</span>
-              <button
-                onClick={() => setAllCardsFlipped(!allCardsFlipped)}
-                className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                aria-label="Toggle between charts and calendars"
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    allCardsFlipped ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-              <span className="text-sm text-gray-600">Calendars</span>
-            </div>
+          {/* Toggle switch for flipping all cards */}
+          <div className="flex items-center space-x-3">
+            <span className="text-sm text-gray-600">Charts</span>
+            <button
+              onClick={() => setAllCardsFlipped(!allCardsFlipped)}
+              className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+              aria-label="Toggle between charts and calendars"
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  allCardsFlipped ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+            <span className="text-sm text-gray-600">Calendars</span>
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
