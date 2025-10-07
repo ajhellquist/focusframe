@@ -43,21 +43,11 @@ export default function Layout({ children }: LayoutProps) {
     return lastActiveRoute === path;
   };
 
-  // Helper function to get navigation link classes
-  const getNavLinkClasses = (path: string) => {
-    const isActive = isActiveRoute(path);
-    return isActive
-      ? "bg-[#569866] text-white font-semibold px-6 py-3 shadow-sm hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 transition-all duration-200 ease-out"
-      : "text-gray-700 hover:text-blue-500 p-3 transition-colors duration-200";
-  };
-
-  // Helper function to get mobile navigation link classes
-  const getMobileNavLinkClasses = (path: string) => {
-    const isActive = isActiveRoute(path);
-    return isActive
-      ? "bg-[#569866] text-white font-semibold mx-4 my-1 px-6 py-3 shadow-sm rounded-full block hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
-      : "text-gray-700 hover:text-blue-500 py-3 px-4 block transition-colors duration-200";
-  };
+  const navItems = [
+    { path: '/dashboard', label: 'Dashboard' },
+    { path: '/todos', label: 'To‑Dos' },
+    { path: '/habits', label: 'Habits' }
+  ];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -71,27 +61,41 @@ export default function Layout({ children }: LayoutProps) {
             />
             {/* Desktop Navigation */}
             <nav className="hidden md:flex space-x-4">
-              <Link 
-                href="/dashboard" 
-                className={getNavLinkClasses('/dashboard')}
-                style={isActiveRoute('/dashboard') ? { borderRadius: '40px' } : {}}
-              >
-                Dashboard
-              </Link>
-              <Link 
-                href="/todos" 
-                className={getNavLinkClasses('/todos')}
-                style={isActiveRoute('/todos') ? { borderRadius: '40px' } : {}}
-              >
-                To‑Dos
-              </Link>
-              <Link 
-                href="/habits" 
-                className={getNavLinkClasses('/habits')}
-                style={isActiveRoute('/habits') ? { borderRadius: '40px' } : {}}
-              >
-                Habits
-              </Link>
+              {navItems.map(({ path, label }) => {
+                const isActive = isActiveRoute(path);
+                if (isActive) {
+                  return (
+                    <Link
+                      key={path}
+                      href={path}
+                      className="group relative inline-flex items-center justify-center overflow-hidden rounded-full px-6 py-3 text-base font-semibold text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 backdrop-blur-xl border border-white/30 shadow-[0_18px_35px_-18px_rgba(34,87,51,0.75)] hover:-translate-y-0.5 active:scale-[0.98]"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-br from-[#325f40]/95 via-[#569866]/70 to-[#1f3a26]/95 transition-colors duration-300"
+                      />
+                      <span
+                        aria-hidden="true"
+                        className="pointer-events-none absolute inset-0 rounded-full bg-white/40 opacity-0 transition-opacity duration-300 group-hover:opacity-30"
+                      />
+                      <span
+                        aria-hidden="true"
+                        className="pointer-events-none absolute -inset-[45%] translate-y-[65%] rotate-12 rounded-full bg-white/25 opacity-0 transition duration-500 ease-out group-hover:translate-y-0 group-hover:opacity-40"
+                      />
+                      <span className="relative z-10">{label}</span>
+                    </Link>
+                  );
+                }
+                return (
+                  <Link
+                    key={path}
+                    href={path}
+                    className="relative inline-flex items-center justify-center rounded-full px-5 py-2.5 text-base font-medium text-gray-700 transition-colors duration-200 hover:text-[#25603a]"
+                  >
+                    {label}
+                  </Link>
+                );
+              })}
             </nav>
           </div>
           <div className="flex items-center">
@@ -131,24 +135,41 @@ export default function Layout({ children }: LayoutProps) {
           // Added absolute positioning, width, border, and z-index for overlay
           <div className="md:hidden bg-white shadow-lg absolute w-full left-0 border-t border-gray-200 z-10">
             <nav className="flex flex-col py-2">
-              <Link 
-                href="/dashboard" 
-                className={getMobileNavLinkClasses('/dashboard')}
-              >
-                Dashboard
-              </Link>
-              <Link 
-                href="/todos" 
-                className={getMobileNavLinkClasses('/todos')}
-              >
-                To‑Dos
-              </Link>
-              <Link 
-                href="/habits" 
-                className={getMobileNavLinkClasses('/habits')}
-              >
-                Habits
-              </Link>
+              {navItems.map(({ path, label }) => {
+                const isActive = isActiveRoute(path);
+                if (isActive) {
+                  return (
+                    <Link
+                      key={path}
+                      href={path}
+                      className="group relative mx-4 my-1 inline-flex items-center justify-center overflow-hidden rounded-full px-6 py-3 text-base font-semibold text-white transition-all duration-300 backdrop-blur-xl border border-white/30 shadow-[0_18px_35px_-18px_rgba(34,87,51,0.75)] focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-br from-[#325f40]/95 via-[#569866]/70 to-[#1f3a26]/95 transition-colors duration-300"
+                      />
+                      <span
+                        aria-hidden="true"
+                        className="pointer-events-none absolute inset-0 rounded-full bg-white/40 opacity-0 transition-opacity duration-300 group-hover:opacity-30"
+                      />
+                      <span
+                        aria-hidden="true"
+                        className="pointer-events-none absolute -inset-[55%] translate-y-[70%] rotate-12 rounded-full bg-white/25 opacity-0 transition duration-500 ease-out group-hover:translate-y-0 group-hover:opacity-35"
+                      />
+                      <span className="relative z-10">{label}</span>
+                    </Link>
+                  );
+                }
+                return (
+                  <Link
+                    key={path}
+                    href={path}
+                    className="py-3 px-4 text-gray-700 transition-colors duration-200 hover:text-[#25603a]"
+                  >
+                    {label}
+                  </Link>
+                );
+              })}
             </nav>
           </div>
         )}
