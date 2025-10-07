@@ -455,54 +455,106 @@ function TodosPage() {
           aria-label="Add new to-do"
           type="button"
           onClick={addTodo}
-          className="inline-flex h-[52px] items-center gap-3 rounded-full bg-[#569866] px-6 py-3 text-base font-semibold text-white shadow-sm transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
+          className="group relative inline-flex h-[52px] items-center gap-3 overflow-hidden rounded-full px-6 py-3 text-base font-semibold text-white transition-all duration-300 ease-out focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 backdrop-blur-xl border border-white/30 shadow-[0_20px_40px_-25px_rgba(34,87,51,0.85)] hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0 active:scale-[0.98]"
         >
-          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/25 text-lg font-bold leading-none text-white">
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-br from-[#325f40]/95 via-[#569866]/70 to-[#1f3a26]/95 transition-all duration-300"
+          />
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 rounded-full bg-white/40 opacity-0 transition-opacity duration-300 group-hover:opacity-30"
+          />
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute -inset-[45%] translate-y-[65%] rotate-12 rounded-full bg-white/25 opacity-0 transition duration-500 ease-out group-hover:translate-y-0 group-hover:opacity-40"
+          />
+          <span className="relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/40 bg-white/30 text-lg font-bold leading-none text-white shadow-inner">
             +
           </span>
-          <span className="hidden sm:inline whitespace-nowrap">Add To Do</span>
+          <span className="relative z-10 hidden sm:inline whitespace-nowrap">Add To Do</span>
         </button>
       </div>
 
       {/* current / completed toggle */}
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="mb-4 flex flex-wrap gap-3">
         <button
           type="button"
           onClick={() => setShowCompleted(false)}
           aria-pressed={!showCompleted}
-          className={`inline-flex items-center gap-3 rounded-full px-6 py-3 text-base font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+          className={`group relative inline-flex items-center justify-center overflow-hidden rounded-full px-6 py-3 text-base font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 backdrop-blur-xl border hover:-translate-y-0.5 active:scale-[0.98] ${
             !showCompleted
-              ? 'bg-[#569866] text-white focus:ring-green-400 shadow-sm hover:-translate-y-0.5 hover:shadow-lg'
-              : 'bg-[#569866]/10 text-[#25603a] focus:ring-green-200 hover:bg-[#569866]/20'
+              ? 'text-white border-white/30 focus:ring-green-400 shadow-[0_18px_35px_-18px_rgba(34,87,51,0.75)]'
+              : 'text-[#25603a] border-white/60 focus:ring-green-200 shadow-[0_12px_30px_-20px_rgba(34,87,51,0.55)]'
           }`}
         >
           <span
-            className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold ${
-              !showCompleted ? 'bg-white/25 text-white' : 'bg-white text-[#25603a]'
+            aria-hidden="true"
+            className={`pointer-events-none absolute inset-0 rounded-full bg-gradient-to-br transition-colors duration-300 ${
+              !showCompleted
+                ? 'from-[#325f40]/95 via-[#569866]/70 to-[#1f3a26]/95'
+                : 'from-white/60 via-[#dff5e7]/45 to-[#6fb682]/55'
             }`}
-          >
-            ▶︎
+          />
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 rounded-full bg-white/40 opacity-0 transition-opacity duration-300 group-hover:opacity-30"
+          />
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute -inset-[45%] translate-y-[65%] rotate-12 rounded-full bg-white/25 opacity-0 transition duration-500 ease-out group-hover:translate-y-0 group-hover:opacity-40"
+          />
+          <span className="relative z-10 flex items-center gap-3">
+            <span
+              className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold transition-colors duration-300 ${
+                !showCompleted
+                  ? 'border border-white/40 bg-white/30 text-white shadow-inner'
+                  : 'border border-white/70 bg-white/80 text-[#25603a] shadow-inner'
+              }`}
+            >
+              ▶︎
+            </span>
+            Current
           </span>
-          Current
         </button>
         <button
           type="button"
           onClick={() => setShowCompleted(true)}
           aria-pressed={showCompleted}
-          className={`inline-flex items-center gap-3 rounded-full px-6 py-3 text-base font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+          className={`group relative inline-flex items-center justify-center overflow-hidden rounded-full px-6 py-3 text-base font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 backdrop-blur-xl border hover:-translate-y-0.5 active:scale-[0.98] ${
             showCompleted
-              ? 'bg-[#569866] text-white focus:ring-green-400 shadow-sm hover:-translate-y-0.5 hover:shadow-lg'
-              : 'bg-[#569866]/10 text-[#25603a] focus:ring-green-200 hover:bg-[#569866]/20'
+              ? 'text-white border-white/30 focus:ring-green-400 shadow-[0_18px_35px_-18px_rgba(34,87,51,0.75)]'
+              : 'text-[#25603a] border-white/60 focus:ring-green-200 shadow-[0_12px_30px_-20px_rgba(34,87,51,0.55)]'
           }`}
         >
           <span
-            className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold ${
-              showCompleted ? 'bg-white/25 text-white' : 'bg-white text-[#25603a]'
+            aria-hidden="true"
+            className={`pointer-events-none absolute inset-0 rounded-full bg-gradient-to-br transition-colors duration-300 ${
+              showCompleted
+                ? 'from-[#325f40]/95 via-[#569866]/70 to-[#1f3a26]/95'
+                : 'from-white/60 via-[#dff5e7]/45 to-[#6fb682]/55'
             }`}
-          >
-            ✓
+          />
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 rounded-full bg-white/40 opacity-0 transition-opacity duration-300 group-hover:opacity-30"
+          />
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute -inset-[45%] translate-y-[65%] rotate-12 rounded-full bg-white/25 opacity-0 transition duration-500 ease-out group-hover:translate-y-0 group-hover:opacity-40"
+          />
+          <span className="relative z-10 flex items-center gap-3">
+            <span
+              className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold transition-colors duration-300 ${
+                showCompleted
+                  ? 'border border-white/40 bg-white/30 text-white shadow-inner'
+                  : 'border border-white/70 bg-white/80 text-[#25603a] shadow-inner'
+              }`}
+            >
+              ✓
+            </span>
+            Completed
           </span>
-          Completed
         </button>
       </div>
 
@@ -524,6 +576,7 @@ function TodosPage() {
               // const originalIndex = todos.findIndex(t => t.id === todo.id); // Less relevant for completed
               const isCompleting = recentlyCompleted.includes(todo.id); // Should be false here
               const isReverting = recentlyReverted.includes(todo.id);
+              const detailStatus = savingStatusMap[todo.id];
 
               return (
                 <li
@@ -626,27 +679,43 @@ function TodosPage() {
                               }
                             }}
                             className={`
-                              relative inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200
-                              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400
+                              group relative inline-flex items-center gap-2 overflow-hidden rounded-full px-4 py-2 text-sm font-semibold transition-all duration-300
+                              focus:outline-none focus:ring-2 focus:ring-offset-2 backdrop-blur-xl border
                               ${editingDetailsMap[todo.id]
-                                ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                : 'bg-[#569866]/10 text-[#25603a] hover:bg-[#569866]/20'}
+                                ? 'text-gray-700 border-white/50 focus:ring-green-200'
+                                : 'text-white border-white/30 focus:ring-green-400 hover:-translate-y-0.5'}
                             `}
                           >
+                            <span
+                              aria-hidden="true"
+                              className={`pointer-events-none absolute inset-0 rounded-full bg-gradient-to-br transition-colors duration-300 ${
+                                editingDetailsMap[todo.id]
+                                  ? 'from-white/80 via-gray-100/70 to-gray-200/80'
+                                  : 'from-[#325f40]/95 via-[#569866]/70 to-[#1f3a26]/95'
+                              }`}
+                            />
+                            <span
+                              aria-hidden="true"
+                              className="pointer-events-none absolute inset-0 rounded-full bg-white/40 opacity-0 transition-opacity duration-300 group-hover:opacity-30"
+                            />
+                            <span
+                              aria-hidden="true"
+                              className="pointer-events-none absolute -inset-[45%] translate-y-[65%] rotate-12 rounded-full bg-white/25 opacity-0 transition duration-500 ease-out group-hover:translate-y-0 group-hover:opacity-40"
+                            />
                             {editingDetailsMap[todo.id] ? (
-                              <>
-                                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gray-200 text-gray-600 text-xs font-semibold">
+                              <span className="relative z-10 inline-flex items-center gap-2">
+                                <span className="flex h-5 w-5 items-center justify-center rounded-full border border-white/60 bg-white/80 text-gray-600 text-xs font-semibold shadow-inner">
                                   ×
                                 </span>
                                 Cancel Editing
-                              </>
+                              </span>
                             ) : (
-                              <>
-                                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#569866] text-white text-xs font-semibold">
+                              <span className="relative z-10 inline-flex items-center gap-2">
+                                <span className="flex h-5 w-5 items-center justify-center rounded-full border border-white/40 bg-white/30 text-white text-xs font-semibold shadow-inner">
                                   ✎
                                 </span>
                                 {detailsMap[todo.id] ? 'Edit Detail' : 'Add Detail'}
-                              </>
+                              </span>
                             )}
                           </button>
                         </div>
@@ -668,20 +737,42 @@ function TodosPage() {
                                 onClick={async () => {
                                   await saveDetails(todo.id, detailsMap[todo.id] || '');
                                 }}
-                                className={`inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                                  savingStatusMap[todo.id] === 'saving'
-                                    ? 'bg-[#d1f7e1] text-[#25603a] focus:ring-green-200'
-                                    : 'bg-[#569866] text-white focus:ring-green-400 hover:-translate-y-0.5 hover:shadow-lg'
+                                className={`group relative inline-flex items-center gap-2 overflow-hidden rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 backdrop-blur-xl border disabled:cursor-wait disabled:opacity-70 ${
+                                  detailStatus === 'error'
+                                    ? 'text-white border-red-200 focus:ring-red-300 shadow-[0_18px_35px_-18px_rgba(145,37,37,0.65)] hover:-translate-y-0.5'
+                                    : detailStatus === 'saving'
+                                    ? 'text-[#25603a] border-white/60 focus:ring-green-200 shadow-[0_12px_28px_-18px_rgba(34,87,51,0.45)]'
+                                    : 'text-white border-white/30 focus:ring-green-400 shadow-[0_18px_35px_-18px_rgba(34,87,51,0.75)] hover:-translate-y-0.5'
                                 }`}
-                                disabled={savingStatusMap[todo.id] === 'saving'}
+                                disabled={detailStatus === 'saving'}
                               >
-                                {savingStatusMap[todo.id] === 'saving'
-                                  ? 'Saving...'
-                                  : savingStatusMap[todo.id] === 'saved'
-                                  ? 'Saved!'
-                                  : savingStatusMap[todo.id] === 'error'
-                                  ? 'Error - Retry?'
-                                  : 'Save'}
+                                <span
+                                  aria-hidden="true"
+                                  className={`pointer-events-none absolute inset-0 rounded-full bg-gradient-to-br transition-colors duration-300 ${
+                                    detailStatus === 'error'
+                                      ? 'from-[#f06a6a]/90 via-[#d54949]/80 to-[#912525]/90'
+                                      : detailStatus === 'saving'
+                                      ? 'from-white/75 via-[#dff5e7]/60 to-[#6fb682]/60'
+                                      : 'from-[#325f40]/95 via-[#569866]/70 to-[#1f3a26]/95'
+                                  }`}
+                                />
+                                <span
+                                  aria-hidden="true"
+                                  className="pointer-events-none absolute inset-0 rounded-full bg-white/40 opacity-0 transition-opacity duration-300 group-hover:opacity-30"
+                                />
+                                <span
+                                  aria-hidden="true"
+                                  className="pointer-events-none absolute -inset-[45%] translate-y-[65%] rotate-12 rounded-full bg-white/25 opacity-0 transition duration-500 ease-out group-hover:translate-y-0 group-hover:opacity-40"
+                                />
+                                <span className="relative z-10">
+                                  {detailStatus === 'saving'
+                                    ? 'Saving...'
+                                    : detailStatus === 'saved'
+                                    ? 'Saved!'
+                                    : detailStatus === 'error'
+                                    ? 'Error - Retry?'
+                                    : 'Save'}
+                                </span>
                               </button>
                             </div>
                             {savingStatusMap[todo.id] === 'error' && (
@@ -721,6 +812,7 @@ function TodosPage() {
           const originalIndex = todos.findIndex(t => t.id === todo.id);
           const isCompleting = recentlyCompleted.includes(todo.id);
           // const isReverting = recentlyReverted.includes(todo.id); // Not relevant for current todos
+          const detailStatus = savingStatusMap[todo.id];
 
           /* ✅ updated tick CSS — works only on real hover devices */
           const tickPathClass = `
@@ -853,26 +945,54 @@ function TodosPage() {
                           }
                         }}
                         className={`
-                          relative inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200
-                          focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400
+                          group relative inline-flex items-center gap-2 overflow-hidden rounded-full px-4 py-2 text-sm font-semibold transition-all duration-300
+                          focus:outline-none focus:ring-2 focus:ring-offset-2 backdrop-blur-xl border
                           ${editingDetailsMap[todo.id]
-                            ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            : 'bg-[#569866]/10 text-[#25603a] hover:bg-[#569866]/20'}
+                            ? 'text-gray-700 border-white/50 focus:ring-green-200'
+                            : 'text-white border-white/30 focus:ring-green-400 hover:-translate-y-0.5'}
                         `}
                       >
                         {editingDetailsMap[todo.id] ? (
                           <>
-                            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gray-200 text-gray-600 text-xs font-semibold">
-                              ×
+                            <span
+                              aria-hidden="true"
+                              className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-br from-white/80 via-gray-100/70 to-gray-200/80 transition-colors duration-300"
+                            />
+                            <span
+                              aria-hidden="true"
+                              className="pointer-events-none absolute inset-0 rounded-full bg-white/40 opacity-0 transition-opacity duration-300 group-hover:opacity-30"
+                            />
+                            <span
+                              aria-hidden="true"
+                              className="pointer-events-none absolute -inset-[45%] translate-y-[65%] rotate-12 rounded-full bg-white/25 opacity-0 transition duration-500 ease-out group-hover:translate-y-0 group-hover:opacity-40"
+                            />
+                            <span className="relative z-10 inline-flex items-center gap-2">
+                              <span className="flex h-5 w-5 items-center justify-center rounded-full border border-white/60 bg-white/80 text-gray-600 text-xs font-semibold shadow-inner">
+                                ×
+                              </span>
+                              Cancel Editing
                             </span>
-                            Cancel Editing
                           </>
                         ) : (
                           <>
-                            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#569866] text-white text-xs font-semibold">
-                              ✎
+                            <span
+                              aria-hidden="true"
+                              className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-br from-[#325f40]/95 via-[#569866]/70 to-[#1f3a26]/95 transition-colors duration-300"
+                            />
+                            <span
+                              aria-hidden="true"
+                              className="pointer-events-none absolute inset-0 rounded-full bg-white/40 opacity-0 transition-opacity duration-300 group-hover:opacity-30"
+                            />
+                            <span
+                              aria-hidden="true"
+                              className="pointer-events-none absolute -inset-[45%] translate-y-[65%] rotate-12 rounded-full bg-white/25 opacity-0 transition duration-500 ease-out group-hover:translate-y-0 group-hover:opacity-40"
+                            />
+                            <span className="relative z-10 inline-flex items-center gap-2">
+                              <span className="flex h-5 w-5 items-center justify-center rounded-full border border-white/40 bg-white/30 text-white text-xs font-semibold shadow-inner">
+                                ✎
+                              </span>
+                              {detailsMap[todo.id] ? 'Edit Detail' : 'Add Detail'}
                             </span>
-                            {detailsMap[todo.id] ? 'Edit Detail' : 'Add Detail'}
                           </>
                         )}
                       </button>
@@ -895,20 +1015,42 @@ function TodosPage() {
                             onClick={async () => {
                               await saveDetails(todo.id, detailsMap[todo.id] || '');
                             }}
-                            className={`inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                              savingStatusMap[todo.id] === 'saving'
-                                ? 'bg-[#d1f7e1] text-[#25603a] focus:ring-green-200'
-                                : 'bg-[#569866] text-white focus:ring-green-400 hover:-translate-y-0.5 hover:shadow-lg'
+                            className={`group relative inline-flex items-center gap-2 overflow-hidden rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 backdrop-blur-xl border disabled:cursor-wait disabled:opacity-70 ${
+                              detailStatus === 'error'
+                                ? 'text-white border-red-200 focus:ring-red-300 shadow-[0_18px_35px_-18px_rgba(145,37,37,0.65)] hover:-translate-y-0.5'
+                                : detailStatus === 'saving'
+                                ? 'text-[#25603a] border-white/60 focus:ring-green-200 shadow-[0_12px_28px_-18px_rgba(34,87,51,0.45)]'
+                                : 'text-white border-white/30 focus:ring-green-400 shadow-[0_18px_35px_-18px_rgba(34,87,51,0.75)] hover:-translate-y-0.5'
                             }`}
-                            disabled={savingStatusMap[todo.id] === 'saving'}
+                            disabled={detailStatus === 'saving'}
                           >
-                            {savingStatusMap[todo.id] === 'saving'
-                              ? 'Saving...'
-                              : savingStatusMap[todo.id] === 'saved'
-                              ? 'Saved!'
-                              : savingStatusMap[todo.id] === 'error'
-                              ? 'Error - Retry?'
-                              : 'Save'}
+                            <span
+                              aria-hidden="true"
+                              className={`pointer-events-none absolute inset-0 rounded-full bg-gradient-to-br transition-colors duration-300 ${
+                                detailStatus === 'error'
+                                  ? 'from-[#f06a6a]/90 via-[#d54949]/80 to-[#912525]/90'
+                                  : detailStatus === 'saving'
+                                  ? 'from-white/75 via-[#dff5e7]/60 to-[#6fb682]/60'
+                                  : 'from-[#325f40]/95 via-[#569866]/70 to-[#1f3a26]/95'
+                              }`}
+                            />
+                            <span
+                              aria-hidden="true"
+                              className="pointer-events-none absolute inset-0 rounded-full bg-white/40 opacity-0 transition-opacity duration-300 group-hover:opacity-30"
+                            />
+                            <span
+                              aria-hidden="true"
+                              className="pointer-events-none absolute -inset-[45%] translate-y-[65%] rotate-12 rounded-full bg-white/25 opacity-0 transition duration-500 ease-out group-hover:translate-y-0 group-hover:opacity-40"
+                            />
+                            <span className="relative z-10">
+                              {detailStatus === 'saving'
+                                ? 'Saving...'
+                                : detailStatus === 'saved'
+                                ? 'Saved!'
+                                : detailStatus === 'error'
+                                ? 'Error - Retry?'
+                                : 'Save'}
+                            </span>
                           </button>
                         </div>
                         {savingStatusMap[todo.id] === 'error' && (

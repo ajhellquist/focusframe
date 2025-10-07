@@ -324,12 +324,24 @@ export default function HabitsPage() {
                 aria-label="Add new habit"
                 type="button"
                 onClick={() => setIsExpanded(true)}
-                className="inline-flex h-[52px] items-center gap-3 rounded-full bg-[#569866] px-6 py-3 text-base font-semibold text-white shadow-sm transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
+                className="group relative inline-flex h-[52px] items-center gap-3 overflow-hidden rounded-full px-6 py-3 text-base font-semibold text-white transition-all duration-300 ease-out focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 backdrop-blur-xl border border-white/30 shadow-[0_20px_40px_-25px_rgba(34,87,51,0.85)] hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0 active:scale-[0.98]"
               >
-                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/25 text-lg font-bold leading-none text-white">
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-br from-[#325f40]/95 via-[#569866]/70 to-[#1f3a26]/95 transition-all duration-300"
+                />
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 rounded-full bg-white/40 opacity-0 transition-opacity duration-300 group-hover:opacity-30"
+                />
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute -inset-[45%] translate-y-[65%] rotate-12 rounded-full bg-white/25 opacity-0 transition duration-500 ease-out group-hover:translate-y-0 group-hover:opacity-40"
+                />
+                <span className="relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/40 bg-white/30 text-lg font-bold leading-none text-white shadow-inner">
                   +
                 </span>
-                <span className="hidden sm:inline whitespace-nowrap">Add Habit</span>
+                <span className="relative z-10 hidden sm:inline whitespace-nowrap">Add Habit</span>
               </button>
             ) : (
               <form onSubmit={handleSubmit} className="flex items-center">
