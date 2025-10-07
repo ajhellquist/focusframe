@@ -49,7 +49,11 @@ const markdownComponents: Components = {
       {...props}
     />
   ),
-  code: ({ node, inline, className, children, ...props }) => {
+  code: componentProps => {
+    const { inline, className, children, ...props } = componentProps as React.HTMLAttributes<HTMLElement> & {
+      inline?: boolean;
+      children?: React.ReactNode;
+    };
     if (inline) {
       return (
         <code
