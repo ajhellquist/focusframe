@@ -244,9 +244,9 @@ function Dashboard() {
                   strokeWidth="10"
                   strokeDasharray={circumference}
                   strokeDashoffset={offset}
-                  transform="rotate(-90 80 80)"
                   strokeLinecap="round"
                   className="transition-all duration-700 ease-out"
+                  transform="rotate(-90 80 80) scale(-1 1) translate(-160 0)"
                 />
                 <text
                   x="50%"
