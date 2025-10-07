@@ -1,6 +1,7 @@
 import Head from "next/head";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
+import { CalendarDaysIcon, PresentationChartLineIcon } from "@heroicons/react/24/outline";
 import { supabase } from "../lib/supabaseClient";
 /**
  * Get a YYYY-MM-DD date string for a Date in the local timezone.
@@ -377,20 +378,54 @@ function Dashboard() {
       <main className="min-h-screen p-8 bg-gray-50">
         <div className="mb-8">
           {/* Toggle switch for flipping all cards */}
-          <div className="flex items-center space-x-3">
-            <span className="text-sm text-gray-600">Charts</span>
-            <button
-              onClick={() => setAllCardsFlipped(!allCardsFlipped)}
-              className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-xs font-semibold tracking-wide text-[#25603a]/80 uppercase">
+              View
+            </span>
+            <div
+              role="group"
               aria-label="Toggle between charts and calendars"
+              className="relative inline-flex items-center rounded-full border border-white/60 bg-white/70 p-1 shadow-[0_18px_35px_-18px_rgba(34,87,51,0.45)] backdrop-blur-sm"
             >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  allCardsFlipped ? 'translate-x-6' : 'translate-x-1'
+              <button
+                type="button"
+                onClick={() => setAllCardsFlipped(false)}
+                aria-pressed={!allCardsFlipped}
+                className={`relative flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-1 sm:px-5 ${
+                  !allCardsFlipped
+                    ? 'bg-gradient-to-br from-[#325f40]/95 via-[#569866]/80 to-[#1f3a26]/95 text-white shadow-[0_18px_35px_-18px_rgba(34,87,51,0.75)]'
+                    : 'text-[#25603a] hover:bg-white/60 hover:text-[#1f3a26]'
                 }`}
+              >
+                <PresentationChartLineIcon
+                  className={`h-4 w-4 transition-colors ${
+                    !allCardsFlipped ? 'text-white' : 'text-[#25603a]'
+                  }`}
+                />
+                <span>Charts</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setAllCardsFlipped(true)}
+                aria-pressed={allCardsFlipped}
+                className={`relative flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-1 sm:px-5 ${
+                  allCardsFlipped
+                    ? 'bg-gradient-to-br from-[#325f40]/95 via-[#569866]/80 to-[#1f3a26]/95 text-white shadow-[0_18px_35px_-18px_rgba(34,87,51,0.75)]'
+                    : 'text-[#25603a] hover:bg-white/60 hover:text-[#1f3a26]'
+                }`}
+              >
+                <CalendarDaysIcon
+                  className={`h-4 w-4 transition-colors ${
+                    allCardsFlipped ? 'text-white' : 'text-[#25603a]'
+                  }`}
+                />
+                <span>Calendars</span>
+              </button>
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 rounded-full border border-white/40 opacity-30"
               />
-            </button>
-            <span className="text-sm text-gray-600">Calendars</span>
+            </div>
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
