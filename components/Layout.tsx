@@ -47,7 +47,7 @@ export default function Layout({ children }: LayoutProps) {
   const getNavLinkClasses = (path: string) => {
     const isActive = isActiveRoute(path);
     return isActive
-      ? "bg-green-500 text-white font-medium px-6 py-3 shadow-md hover:scale-105 hover:brightness-105 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 transform transition-all duration-200 ease-out"
+      ? "bg-[#569866] text-white font-semibold px-6 py-3 shadow-sm hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 transition-all duration-200 ease-out"
       : "text-gray-700 hover:text-blue-500 p-3 transition-colors duration-200";
   };
 
@@ -55,7 +55,7 @@ export default function Layout({ children }: LayoutProps) {
   const getMobileNavLinkClasses = (path: string) => {
     const isActive = isActiveRoute(path);
     return isActive
-      ? "bg-green-500 text-white font-medium mx-4 my-1 px-6 py-3 shadow-md rounded-full block transition-all duration-200"
+      ? "bg-[#569866] text-white font-semibold mx-4 my-1 px-6 py-3 shadow-sm rounded-full block hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
       : "text-gray-700 hover:text-blue-500 py-3 px-4 block transition-colors duration-200";
   };
 
