@@ -321,12 +321,15 @@ export default function HabitsPage() {
           <div className="relative">
             {!isExpanded ? (
               <button
+                aria-label="Add new habit"
+                type="button"
                 onClick={() => setIsExpanded(true)}
-                className="bg-green-500 text-white font-medium text-base px-6 py-3 shadow-md hover:scale-105 hover:brightness-105 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 transform transition-all duration-300 ease-out h-[52px] flex items-center justify-center"
-                style={{ borderRadius: '40px' }}
+                className="inline-flex h-[52px] items-center gap-3 rounded-full bg-[#569866] px-6 py-3 text-base font-semibold text-white shadow-sm transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
               >
-                <span className="font-bold text-lg">+</span>
-                <span className="hidden sm:inline ml-2">Add Habit</span>
+                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/25 text-lg font-bold leading-none text-white">
+                  +
+                </span>
+                <span className="hidden sm:inline whitespace-nowrap">Add Habit</span>
               </button>
             ) : (
               <form onSubmit={handleSubmit} className="flex items-center">

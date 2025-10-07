@@ -3,6 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseClient';
 import ContextMenu from '../components/ContextMenu';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import type { Components } from 'react-markdown';
 
 type Todo = {
   id: string;
@@ -11,6 +14,62 @@ type Todo = {
   created_at: string;
   completed_at?: string | null;
   detail?: string | null;
+};
+
+const markdownComponents: Components = {
+  h1: ({ node, ...props }) => (
+    <h3 className="text-xl font-semibold text-gray-900 mt-2 mb-1" {...props} />
+  ),
+  h2: ({ node, ...props }) => (
+    <h4 className="text-lg font-semibold text-gray-900 mt-2 mb-1" {...props} />
+  ),
+  h3: ({ node, ...props }) => (
+    <h5 className="text-base font-semibold text-gray-900 mt-2 mb-1" {...props} />
+  ),
+  p: ({ node, ...props }) => (
+    <p className="text-gray-700 leading-relaxed mb-2 last:mb-0" {...props} />
+  ),
+  ul: ({ node, ...props }) => (
+    <ul className="list-disc pl-6 text-gray-700 space-y-1 mb-2 last:mb-0" {...props} />
+  ),
+  ol: ({ node, ...props }) => (
+    <ol className="list-decimal pl-6 text-gray-700 space-y-1 mb-2 last:mb-0" {...props} />
+  ),
+  li: ({ node, ...props }) => <li className="leading-relaxed" {...props} />,
+  strong: ({ node, ...props }) => (
+    <strong className="font-semibold text-gray-900" {...props} />
+  ),
+  em: ({ node, ...props }) => <em className="italic text-gray-700" {...props} />,
+  a: ({ node, ...props }) => (
+    <a className="text-blue-600 underline hover:text-blue-700" {...props} />
+  ),
+  blockquote: ({ node, ...props }) => (
+    <blockquote
+      className="border-l-4 border-gray-300 pl-4 italic text-gray-600 mb-2 last:mb-0"
+      {...props}
+    />
+  ),
+  code: componentProps => {
+    const { inline, className, children, ...props } = componentProps as React.HTMLAttributes<HTMLElement> & {
+      inline?: boolean;
+      children?: React.ReactNode;
+    };
+    if (inline) {
+      return (
+        <code
+          className="bg-gray-100 px-1 py-0.5 rounded font-mono text-sm text-gray-800"
+          {...props}
+        >
+          {children}
+        </code>
+      );
+    }
+    return (
+      <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
+        <code {...props}>{children}</code>
+      </pre>
+    );
+  },
 };
 
 // Helper function to format date as "Weekday, Month Day, Year"
@@ -63,6 +122,7 @@ function TodosPage() {
   const [showCompleted, setShowCompleted] = useState<boolean>(false);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [detailsMap, setDetailsMap] = useState<Record<string, string>>({});
+  const [editingDetailsMap, setEditingDetailsMap] = useState<Record<string, boolean>>({});
   const [recentlyCompleted, setRecentlyCompleted] = useState<string[]>([]);
   const [recentlyReverted, setRecentlyReverted] = useState<string[]>([]);
   const [savingStatusMap, setSavingStatusMap] = useState<Record<string, 'idle' | 'saving' | 'saved' | 'error'>>({});
@@ -174,6 +234,7 @@ function TodosPage() {
           return acc;
         }, {} as Record<string, string>)
       );
+      setEditingDetailsMap({});
     }
   };
 
@@ -292,10 +353,41 @@ function TodosPage() {
   // displayedTodos will now only refer to non-completed tasks for the current view
   const displayedTodos = todos.filter(t => !t.is_complete);
 
+  const startEditingDetails = (todoId: string) => {
+    setEditingDetailsMap(prev => ({ ...prev, [todoId]: true }));
+    setDetailsMap(prev => {
+      if (prev[todoId] !== undefined) {
+        return prev;
+      }
+      const current = todos.find(todo => todo.id === todoId);
+      return {
+        ...prev,
+        [todoId]: current?.detail ?? '',
+      };
+    });
+  };
+
+  const cancelEditingDetails = (todoId: string) => {
+    const current = todos.find(todo => todo.id === todoId);
+    setDetailsMap(prev => ({
+      ...prev,
+      [todoId]: current?.detail ?? '',
+    }));
+    setEditingDetailsMap(prev => {
+      const next = { ...prev };
+      delete next[todoId];
+      return next;
+    });
+    setSavingStatusMap(prev => {
+      if (prev[todoId] === undefined) return prev;
+      return { ...prev, [todoId]: 'idle' };
+    });
+  };
+
   const saveDetails = async (todoId: string, details: string) => {
     setSavingStatusMap(prev => ({ ...prev, [todoId]: 'saving' }));
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('todos')
         .update({ detail: details })
         .eq('id', todoId)
@@ -306,15 +398,36 @@ function TodosPage() {
         setSavingStatusMap(prev => ({ ...prev, [todoId]: 'error' }));
       } else {
         console.log('Details saved successfully for todo:', todoId);
+        if (data && data.length) {
+          setTodos(prev =>
+            prev.map(todo =>
+              todo.id === todoId ? { ...todo, detail: data[0].detail ?? '' } : todo
+            )
+          );
+        } else {
+          setTodos(prev =>
+            prev.map(todo =>
+              todo.id === todoId ? { ...todo, detail: details } : todo
+            )
+          );
+        }
+        setDetailsMap(prev => ({ ...prev, [todoId]: details }));
+        setEditingDetailsMap(prev => {
+          const next = { ...prev };
+          delete next[todoId];
+          return next;
+        });
         setSavingStatusMap(prev => ({ ...prev, [todoId]: 'saved' }));
         setTimeout(() => {
           setSavingStatusMap(prev => ({ ...prev, [todoId]: 'idle' }));
         }, 2000); // Revert to idle after 2 seconds
+        return true;
       }
     } catch (error) {
       console.error('Exception while saving details:', error);
       setSavingStatusMap(prev => ({ ...prev, [todoId]: 'error' }));
     }
+    return false;
   };
 
   if (!user) return null;
@@ -339,33 +452,56 @@ function TodosPage() {
           className="flex-1 bg-white border border-gray-200 rounded-full px-6 py-3 text-base placeholder-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent hover:shadow-md transition-all duration-200 ease-out h-[52px]"
         />
         <button
+          aria-label="Add new to-do"
+          type="button"
           onClick={addTodo}
-          className="bg-green-500 text-white font-medium text-base px-6 py-3 shadow-md hover:scale-105 hover:brightness-105 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 transform transition-all duration-200 ease-out h-[52px] flex items-center justify-center"
-          style={{ borderRadius: '40px' }}
+          className="inline-flex h-[52px] items-center gap-3 rounded-full bg-[#569866] px-6 py-3 text-base font-semibold text-white shadow-sm transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
         >
-          <span className="font-bold text-lg">+</span>
-          <span className="hidden sm:inline ml-2">Add To Do</span>
+          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/25 text-lg font-bold leading-none text-white">
+            +
+          </span>
+          <span className="hidden sm:inline whitespace-nowrap">Add To Do</span>
         </button>
       </div>
 
       {/* current / completed toggle */}
-      <div className="flex mb-4 space-x-2">
+      <div className="mb-4 flex flex-wrap gap-2">
         <button
+          type="button"
           onClick={() => setShowCompleted(false)}
-          className={`font-medium text-base px-6 py-3 shadow-md hover:scale-105 hover:brightness-105 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 transform transition-all duration-200 ease-out ${
-            !showCompleted ? 'bg-[#569866] text-white focus:ring-green-400' : 'bg-gray-200 text-gray-700 focus:ring-gray-400'
+          aria-pressed={!showCompleted}
+          className={`inline-flex items-center gap-3 rounded-full px-6 py-3 text-base font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+            !showCompleted
+              ? 'bg-[#569866] text-white focus:ring-green-400 shadow-sm hover:-translate-y-0.5 hover:shadow-lg'
+              : 'bg-[#569866]/10 text-[#25603a] focus:ring-green-200 hover:bg-[#569866]/20'
           }`}
-          style={{ borderRadius: '40px' }}
         >
+          <span
+            className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold ${
+              !showCompleted ? 'bg-white/25 text-white' : 'bg-white text-[#25603a]'
+            }`}
+          >
+            ▶︎
+          </span>
           Current
         </button>
         <button
+          type="button"
           onClick={() => setShowCompleted(true)}
-          className={`font-medium text-base px-6 py-3 shadow-md hover:scale-105 hover:brightness-105 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 transform transition-all duration-200 ease-out ${
-            showCompleted ? 'bg-[#569866] text-white focus:ring-green-400' : 'bg-gray-200 text-gray-700 focus:ring-gray-400'
+          aria-pressed={showCompleted}
+          className={`inline-flex items-center gap-3 rounded-full px-6 py-3 text-base font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+            showCompleted
+              ? 'bg-[#569866] text-white focus:ring-green-400 shadow-sm hover:-translate-y-0.5 hover:shadow-lg'
+              : 'bg-[#569866]/10 text-[#25603a] focus:ring-green-200 hover:bg-[#569866]/20'
           }`}
-          style={{ borderRadius: '40px' }}
         >
+          <span
+            className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold ${
+              showCompleted ? 'bg-white/25 text-white' : 'bg-white text-[#25603a]'
+            }`}
+          >
+            ✓
+          </span>
           Completed
         </button>
       </div>
@@ -478,31 +614,99 @@ function TodosPage() {
                         {todo.completed_at ? formatDate(todo.completed_at) : 'N/A'}
                       </p>
                       <div className="mt-2">
-                        <label htmlFor={`details-${todo.id}`} className="block mb-1 font-medium">
-                          Details:
-                        </label>
-                        <textarea
-                          id={`details-${todo.id}`}
-                          value={detailsMap[todo.id] || ''}
-                          onChange={e =>
-                            setDetailsMap(prev => ({ ...prev, [todo.id]: e.target.value }))
-                          }
-                          className="w-full border border-gray-200 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200"
-                          rows={3}
-                        />
-                        <button
-                          onClick={() => saveDetails(todo.id, detailsMap[todo.id] || '')}
-                          className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg text-sm mt-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
-                          disabled={savingStatusMap[todo.id] === 'saving'}
-                        >
-                          {savingStatusMap[todo.id] === 'saving'
-                            ? 'Saving...'
-                            : savingStatusMap[todo.id] === 'saved'
-                            ? 'Saved!'
-                            : savingStatusMap[todo.id] === 'error'
-                            ? 'Error - Retry?'
-                            : 'Save'}
-                        </button>
+                        <div className="flex items-center mb-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={e => {
+                              e.stopPropagation();
+                              if (editingDetailsMap[todo.id]) {
+                                cancelEditingDetails(todo.id);
+                              } else {
+                                startEditingDetails(todo.id);
+                              }
+                            }}
+                            className={`
+                              relative inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200
+                              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400
+                              ${editingDetailsMap[todo.id]
+                                ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                : 'bg-[#569866]/10 text-[#25603a] hover:bg-[#569866]/20'}
+                            `}
+                          >
+                            {editingDetailsMap[todo.id] ? (
+                              <>
+                                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gray-200 text-gray-600 text-xs font-semibold">
+                                  ×
+                                </span>
+                                Cancel Editing
+                              </>
+                            ) : (
+                              <>
+                                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#569866] text-white text-xs font-semibold">
+                                  ✎
+                                </span>
+                                {detailsMap[todo.id] ? 'Edit Detail' : 'Add Detail'}
+                              </>
+                            )}
+                          </button>
+                        </div>
+                        {editingDetailsMap[todo.id] ? (
+                          <>
+                            <textarea
+                              id={`details-${todo.id}`}
+                              aria-label="To-do detail notes"
+                              value={detailsMap[todo.id] || ''}
+                              onChange={e =>
+                                setDetailsMap(prev => ({ ...prev, [todo.id]: e.target.value }))
+                              }
+                              className="w-full border border-gray-200 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200"
+                              rows={4}
+                              placeholder="Use Markdown to add formatting (headings, lists, code, etc.)"
+                            />
+                            <div className="flex items-center gap-2 mt-2">
+                              <button
+                                onClick={async () => {
+                                  await saveDetails(todo.id, detailsMap[todo.id] || '');
+                                }}
+                                className={`inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                                  savingStatusMap[todo.id] === 'saving'
+                                    ? 'bg-[#d1f7e1] text-[#25603a] focus:ring-green-200'
+                                    : 'bg-[#569866] text-white focus:ring-green-400 hover:-translate-y-0.5 hover:shadow-lg'
+                                }`}
+                                disabled={savingStatusMap[todo.id] === 'saving'}
+                              >
+                                {savingStatusMap[todo.id] === 'saving'
+                                  ? 'Saving...'
+                                  : savingStatusMap[todo.id] === 'saved'
+                                  ? 'Saved!'
+                                  : savingStatusMap[todo.id] === 'error'
+                                  ? 'Error - Retry?'
+                                  : 'Save'}
+                              </button>
+                            </div>
+                            {savingStatusMap[todo.id] === 'error' && (
+                              <p className="text-sm text-red-500 mt-1">
+                                Could not save details. Please try again.
+                              </p>
+                            )}
+                          </>
+                        ) : (
+                          <div className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
+                            {detailsMap[todo.id] ? (
+                              <ReactMarkdown
+                                remarkPlugins={[remarkGfm]}
+                                components={markdownComponents}
+                              >
+                                {detailsMap[todo.id]}
+                              </ReactMarkdown>
+                            ) : (
+                              <p className="text-gray-500 italic">No details provided.</p>
+                            )}
+                          </div>
+                        )}
+                        {savingStatusMap[todo.id] === 'saved' && !editingDetailsMap[todo.id] && (
+                          <p className="text-sm text-green-600 mt-2">Details saved.</p>
+                        )}
                       </div>
                     </div>
                   )}
@@ -637,31 +841,99 @@ function TodosPage() {
                   <p>Date Created: {formatDate(todo.created_at)}</p>
                   {/* No Date Completed for current tasks */}
                   <div className="mt-2">
-                    <label htmlFor={`details-${todo.id}`} className="block mb-1 font-medium">
-                      Details:
-                    </label>
-                    <textarea
-                      id={`details-${todo.id}`}
-                      value={detailsMap[todo.id] || ''}
-                      onChange={e =>
-                        setDetailsMap(prev => ({ ...prev, [todo.id]: e.target.value }))
-                      }
-                      className="w-full border border-gray-200 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200"
-                      rows={3}
-                    />
-                    <button
-                      onClick={() => saveDetails(todo.id, detailsMap[todo.id] || '')}
-                      className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg text-sm mt-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
-                      disabled={savingStatusMap[todo.id] === 'saving'}
-                    >
-                      {savingStatusMap[todo.id] === 'saving'
-                        ? 'Saving...'
-                        : savingStatusMap[todo.id] === 'saved'
-                        ? 'Saved!'
-                        : savingStatusMap[todo.id] === 'error'
-                        ? 'Error - Retry?'
-                        : 'Save'}
-                    </button>
+                    <div className="flex items-center mb-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={e => {
+                          e.stopPropagation();
+                          if (editingDetailsMap[todo.id]) {
+                            cancelEditingDetails(todo.id);
+                          } else {
+                            startEditingDetails(todo.id);
+                          }
+                        }}
+                        className={`
+                          relative inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200
+                          focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400
+                          ${editingDetailsMap[todo.id]
+                            ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            : 'bg-[#569866]/10 text-[#25603a] hover:bg-[#569866]/20'}
+                        `}
+                      >
+                        {editingDetailsMap[todo.id] ? (
+                          <>
+                            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gray-200 text-gray-600 text-xs font-semibold">
+                              ×
+                            </span>
+                            Cancel Editing
+                          </>
+                        ) : (
+                          <>
+                            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#569866] text-white text-xs font-semibold">
+                              ✎
+                            </span>
+                            {detailsMap[todo.id] ? 'Edit Detail' : 'Add Detail'}
+                          </>
+                        )}
+                      </button>
+                    </div>
+                    {editingDetailsMap[todo.id] ? (
+                      <>
+                        <textarea
+                          id={`details-${todo.id}`}
+                          aria-label="To-do detail notes"
+                          value={detailsMap[todo.id] || ''}
+                          onChange={e =>
+                            setDetailsMap(prev => ({ ...prev, [todo.id]: e.target.value }))
+                          }
+                          className="w-full border border-gray-200 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200"
+                          rows={4}
+                          placeholder="Use Markdown to add formatting (headings, lists, code, etc.)"
+                        />
+                        <div className="flex items-center gap-2 mt-2">
+                          <button
+                            onClick={async () => {
+                              await saveDetails(todo.id, detailsMap[todo.id] || '');
+                            }}
+                            className={`inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                              savingStatusMap[todo.id] === 'saving'
+                                ? 'bg-[#d1f7e1] text-[#25603a] focus:ring-green-200'
+                                : 'bg-[#569866] text-white focus:ring-green-400 hover:-translate-y-0.5 hover:shadow-lg'
+                            }`}
+                            disabled={savingStatusMap[todo.id] === 'saving'}
+                          >
+                            {savingStatusMap[todo.id] === 'saving'
+                              ? 'Saving...'
+                              : savingStatusMap[todo.id] === 'saved'
+                              ? 'Saved!'
+                              : savingStatusMap[todo.id] === 'error'
+                              ? 'Error - Retry?'
+                              : 'Save'}
+                          </button>
+                        </div>
+                        {savingStatusMap[todo.id] === 'error' && (
+                          <p className="text-sm text-red-500 mt-1">
+                            Could not save details. Please try again.
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <div className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
+                        {detailsMap[todo.id] ? (
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={markdownComponents}
+                          >
+                            {detailsMap[todo.id]}
+                          </ReactMarkdown>
+                        ) : (
+                          <p className="text-gray-500 italic">No details provided.</p>
+                        )}
+                      </div>
+                    )}
+                    {savingStatusMap[todo.id] === 'saved' && !editingDetailsMap[todo.id] && (
+                      <p className="text-sm text-green-600 mt-2">Details saved.</p>
+                    )}
                   </div>
                 </div>
               )}

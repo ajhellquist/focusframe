@@ -19,17 +19,26 @@ const mockTodoItems = [
   { id: '3', content: 'Test Todo 3', is_complete: true, created_at: new Date().toISOString(), completed_at: new Date().toISOString(), detail: 'Detail 3' },
 ];
 
-// More detailed mock for chained calls
-const mockSupabaseEq = jest.fn().mockReturnThis();
-const mockSupabaseOrder = jest.fn().mockResolvedValue({ data: [...mockTodoItems], error: null });
-const mockSupabaseSelect = jest.fn(() => ({
-  eq: mockSupabaseEq,
-  order: mockSupabaseOrder,
-}));
-const mockSupabaseDelete = jest.fn().mockReturnThis(); // To chain .eq
-const mockSupabaseInsert = jest.fn().mockResolvedValue({ data: [{ id: 'new-id', content: 'New Todo', is_complete: false, created_at: new Date().toISOString() }], error: null });
-const mockSupabaseUpdate = jest.fn().mockReturnThis(); // To chain .eq
+// Chainable mocks for Supabase queries
+const mockSelectOrder = jest.fn().mockResolvedValue({ data: [...mockTodoItems], error: null });
+const mockSelectEq = jest.fn(() => ({ order: mockSelectOrder }));
+const mockSupabaseSelect = jest.fn(() => ({ eq: mockSelectEq, order: mockSelectOrder }));
 
+const mockInsertSelect = jest.fn().mockResolvedValue({
+  data: [{ id: 'new-id', content: 'New Todo', is_complete: false, created_at: new Date().toISOString(), detail: '' }],
+  error: null,
+});
+const mockSupabaseInsert = jest.fn(() => ({ select: mockInsertSelect }));
+
+const mockUpdateSelect = jest.fn().mockResolvedValue({
+  data: [{ id: '1', content: 'Test Todo 1', is_complete: false, created_at: new Date().toISOString(), detail: 'Updated' }],
+  error: null,
+});
+const mockUpdateEq = jest.fn(() => ({ select: mockUpdateSelect }));
+const mockSupabaseUpdate = jest.fn(() => ({ eq: mockUpdateEq }));
+
+const mockDeleteEq = jest.fn().mockResolvedValue({ error: null });
+const mockSupabaseDelete = jest.fn(() => ({ eq: mockDeleteEq }));
 
 jest.mock('../../lib/supabaseClient', () => ({
   supabase: {
@@ -41,8 +50,6 @@ jest.mock('../../lib/supabaseClient', () => ({
       insert: mockSupabaseInsert,
       update: mockSupabaseUpdate,
       delete: mockSupabaseDelete,
-      eq: mockSupabaseEq, // Allow .eq directly after .from().delete() or .from().update()
-      order: mockSupabaseOrder, // Allow .order directly after .from().select().eq()
     })),
     channel: jest.fn().mockReturnThis(),
     on: jest.fn().mockReturnThis(),
@@ -64,22 +71,26 @@ describe('TodosPage - ContextMenu Delete Functionality', () => {
     // Reset mocks before each test
     jest.clearAllMocks();
 
-    // Restore detailed mock implementation for supabase.from and its chainable methods
-    (supabase.from as jest.Mock).mockImplementation(() => ({
-      select: mockSupabaseSelect,
-      insert: mockSupabaseInsert.mockResolvedValue({ data: [{ id: 'new-id', content: 'New Todo', is_complete: false, created_at: new Date().toISOString() }], error: null }),
-      update: mockSupabaseUpdate.mockImplementation(() => ({ // Ensure update also returns object for chaining eq
-        eq: mockSupabaseEq.mockResolvedValue({ data: [{id: '1', content: 'Test Todo 1 Updated', is_complete: false, created_at: new Date().toISOString(), detail: 'Detail 1 Updated'}], error: null })
-      })),
-      delete: mockSupabaseDelete.mockImplementation(() => ({ // Ensure delete also returns object for chaining eq
-         eq: mockSupabaseEq.mockResolvedValue({ error: null })
-      })),
-    }));
-    mockSupabaseSelect.mockImplementation(() => ({
-        eq: mockSupabaseEq.mockReturnThis(), // .select().eq()
-        order: mockSupabaseOrder.mockResolvedValue({ data: [...mockTodoItems], error: null }), // .select().eq().order()
-    }));
-    
+    mockSelectOrder.mockResolvedValue({ data: [...mockTodoItems], error: null });
+    mockSelectEq.mockReturnValue({ order: mockSelectOrder });
+    mockSupabaseSelect.mockReturnValue({ eq: mockSelectEq, order: mockSelectOrder });
+
+    mockInsertSelect.mockResolvedValue({
+      data: [{ id: 'new-id', content: 'New Todo', is_complete: false, created_at: new Date().toISOString(), detail: '' }],
+      error: null,
+    });
+    mockSupabaseInsert.mockReturnValue({ select: mockInsertSelect });
+
+    mockUpdateSelect.mockResolvedValue({
+      data: [{ id: '1', content: 'Test Todo 1', is_complete: false, created_at: new Date().toISOString(), detail: 'Updated' }],
+      error: null,
+    });
+    mockUpdateEq.mockReturnValue({ select: mockUpdateSelect });
+    mockSupabaseUpdate.mockReturnValue({ eq: mockUpdateEq });
+
+    mockDeleteEq.mockResolvedValue({ error: null });
+    mockSupabaseDelete.mockReturnValue({ eq: mockDeleteEq });
+
     (supabase.auth.getSession as jest.Mock).mockResolvedValue({ data: { session: { user: { id: 'test-user-id' } } } });
     (supabase.removeChannel as jest.Mock).mockClear();
     (supabase.channel as jest.Mock).mockReturnThis();
@@ -131,7 +142,7 @@ describe('TodosPage - ContextMenu Delete Functionality', () => {
     expect(supabase.from).toHaveBeenCalledWith('todos');
     // Check that the delete chain was called, and eq was called on it with the correct id
     expect(mockSupabaseDelete).toHaveBeenCalledTimes(1);
-    expect(mockSupabaseEq).toHaveBeenCalledWith('id', '1');
+    expect(mockDeleteEq).toHaveBeenCalledWith('id', '1');
 
     // Check that other items are still present
     expect(screen.getByText('Test Todo 2')).toBeInTheDocument();
