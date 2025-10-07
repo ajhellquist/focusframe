@@ -469,20 +469,32 @@ function TodosPage() {
             aria-hidden="true"
             className="pointer-events-none absolute -inset-[45%] translate-y-[65%] rotate-12 rounded-full bg-white/25 opacity-0 transition duration-500 ease-out group-hover:translate-y-0 group-hover:opacity-40"
           />
-          <span className="relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/40 bg-white/30 text-lg font-bold leading-none text-white shadow-inner">
-            +
+          <span className="relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/40 bg-white/30 text-white shadow-inner">
+            <svg
+              aria-hidden="true"
+              className="h-3.5 w-3.5"
+              viewBox="0 0 24 24"
+              fill="none"
+            >
+              <path
+                d="M12 5v14M5 12h14"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
           </span>
           <span className="relative z-10 hidden sm:inline whitespace-nowrap">Add To Do</span>
         </button>
       </div>
 
       {/* current / completed toggle */}
-      <div className="mb-4 flex flex-wrap gap-3">
+      <div className="mb-4 flex gap-3 sm:gap-4">
         <button
           type="button"
           onClick={() => setShowCompleted(false)}
           aria-pressed={!showCompleted}
-          className={`group relative inline-flex items-center justify-center overflow-hidden rounded-full px-6 py-3 text-base font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 backdrop-blur-xl border hover:-translate-y-0.5 active:scale-[0.98] ${
+          className={`group relative flex flex-1 min-w-0 items-center justify-center overflow-hidden rounded-full px-4 py-3 text-sm font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 backdrop-blur-xl border hover:-translate-y-0.5 active:scale-[0.98] sm:flex-initial sm:px-6 sm:text-base ${
             !showCompleted
               ? 'text-white border-white/30 focus:ring-green-400 shadow-[0_18px_35px_-18px_rgba(34,87,51,0.75)]'
               : 'text-[#25603a] border-white/60 focus:ring-green-200 shadow-[0_12px_30px_-20px_rgba(34,87,51,0.55)]'
@@ -521,7 +533,7 @@ function TodosPage() {
           type="button"
           onClick={() => setShowCompleted(true)}
           aria-pressed={showCompleted}
-          className={`group relative inline-flex items-center justify-center overflow-hidden rounded-full px-6 py-3 text-base font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 backdrop-blur-xl border hover:-translate-y-0.5 active:scale-[0.98] ${
+          className={`group relative flex flex-1 min-w-0 items-center justify-center overflow-hidden rounded-full px-4 py-3 text-sm font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 backdrop-blur-xl border hover:-translate-y-0.5 active:scale-[0.98] sm:flex-initial sm:px-6 sm:text-base ${
             showCompleted
               ? 'text-white border-white/30 focus:ring-green-400 shadow-[0_18px_35px_-18px_rgba(34,87,51,0.75)]'
               : 'text-[#25603a] border-white/60 focus:ring-green-200 shadow-[0_12px_30px_-20px_rgba(34,87,51,0.55)]'

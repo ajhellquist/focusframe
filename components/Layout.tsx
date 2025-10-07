@@ -49,6 +49,10 @@ export default function Layout({ children }: LayoutProps) {
     { path: '/habits', label: 'Habits' }
   ];
 
+  const handleNavItemClick = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <header className="bg-white shadow relative"> {/* Added relative positioning */}
@@ -69,6 +73,7 @@ export default function Layout({ children }: LayoutProps) {
                       key={path}
                       href={path}
                       className="group relative inline-flex items-center justify-center overflow-hidden rounded-full px-6 py-3 text-base font-semibold text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 backdrop-blur-xl border border-white/30 shadow-[0_18px_35px_-18px_rgba(34,87,51,0.75)] hover:-translate-y-0.5 active:scale-[0.98]"
+                      onClick={handleNavItemClick}
                     >
                       <span
                         aria-hidden="true"
@@ -91,6 +96,7 @@ export default function Layout({ children }: LayoutProps) {
                     key={path}
                     href={path}
                     className="relative inline-flex items-center justify-center rounded-full px-5 py-2.5 text-base font-medium text-gray-700 transition-colors duration-200 hover:text-[#25603a]"
+                    onClick={handleNavItemClick}
                   >
                     {label}
                   </Link>
@@ -143,6 +149,7 @@ export default function Layout({ children }: LayoutProps) {
                       key={path}
                       href={path}
                       className="group relative mx-4 my-1 inline-flex items-center justify-center overflow-hidden rounded-full px-6 py-3 text-base font-semibold text-white transition-all duration-300 backdrop-blur-xl border border-white/30 shadow-[0_18px_35px_-18px_rgba(34,87,51,0.75)] focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2"
+                      onClick={handleNavItemClick}
                     >
                       <span
                         aria-hidden="true"
@@ -164,7 +171,8 @@ export default function Layout({ children }: LayoutProps) {
                   <Link
                     key={path}
                     href={path}
-                    className="py-3 px-4 text-gray-700 transition-colors duration-200 hover:text-[#25603a]"
+                    className="mx-4 my-1 flex items-center justify-center rounded-full px-5 py-3 text-base font-medium text-gray-700 text-center transition-colors duration-200 hover:text-[#25603a]"
+                    onClick={handleNavItemClick}
                   >
                     {label}
                   </Link>
